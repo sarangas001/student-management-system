@@ -51,4 +51,4 @@ jobs:
                   context: ./client
                   push: true
                   tags: |
-                      ${{ secrets.DOCKER_USERNAME }}/react-frontend:latest
+                      ${{ secrets.DOCKER_USERNAME }}/student-management-frontend:latest

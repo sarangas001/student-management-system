@@ -46,4 +46,4 @@ jobs:
                   context: ./server
                   push: true
                   tags: |
-                        ${{ secrets.DOCKER_USERNAME }}/student-management-server:latest
+                        ${{ secrets.DOCKER_USERNAME }}/student-management-backend:latest
