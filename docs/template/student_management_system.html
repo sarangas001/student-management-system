@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Management System — USJ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f6fa;
+    --surface: #ffffff;
+    --surface2: #f0f2f7;
+    --border: #e2e6ef;
+    --border2: #c8cfe0;
+    --text: #1a1d2e;
+    --text2: #5a6278;
+    --text3: #9aa0b4;
+    --blue: #1a5faa;
+    --blue-bg: #e8f1fb;
+    --blue-text: #1a5faa;
+    --green: #2e7d32;
+    --green-bg: #e8f5e9;
+    --green-text: #2e7d32;
+    --amber: #7a4a00;
+    --amber-bg: #fff8e1;
+    --amber-text: #7a4a00;
+    --red: #b71c1c;
+    --red-bg: #ffebee;
+    --red-text: #b71c1c;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .layout { display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .sidebar-logo {
+    padding: 20px 16px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--blue);
+  }
+  .logo-mark i { font-size: 20px; }
+  .logo-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+  .role-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 12px 10px 6px;
+  }
+  .role-tab {
+    flex: 1;
+    padding: 6px 4px;
+    font-size: 11px;
+    font-family: 'DM Sans', sans-serif;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--text2);
+    cursor: pointer;
+    text-align: center;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .role-tab:hover { background: var(--blue-bg); color: var(--blue); border-color: var(--blue); }
+  .role-tab.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  .nav-section {
+    padding: 12px 14px 4px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    margin: 1px 8px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text2);
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active {
+    background: var(--blue-bg);
+    color: var(--blue);
+    font-weight: 500;
+    border-color: #c2d8f5;
+  }
+  .nav-item i { font-size: 17px; width: 20px; }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding: 12px 10px;
+    border-top: 1px solid var(--border);
+  }
+  .user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    background: var(--surface2);
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--blue);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .user-name { font-size: 13px; font-weight: 500; color: var(--text); }
+  .user-role-label { font-size: 11px; color: var(--text3); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 13px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .page-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--surface2); border-color: var(--border2); }
+  .btn i { font-size: 15px; }
+  .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn-primary:hover { background: #154e8e; border-color: #154e8e; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* CONTENT */
+  .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; background: var(--bg); }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* STAT ROW */
+  .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+  }
+  .stat-icon {
+    width: 34px; height: 34px;
+    border-radius: var(--radius);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  .si-blue { background: var(--blue-bg); color: var(--blue); }
+  .si-green { background: var(--green-bg); color: var(--green); }
+  .si-amber { background: var(--amber-bg); color: var(--amber); }
+  .si-red { background: var(--red-bg); color: var(--red); }
+  .stat-label { font-size: 11px; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
+  .stat-val { font-size: 24px; font-weight: 600; color: var(--text); }
+  .stat-delta { font-size: 11px; color: var(--green); margin-top: 3px; }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-title { font-size: 14px; font-weight: 600; color: var(--text); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left;
+    font-size: 11px; font-weight: 600;
+    color: var(--text3);
+    padding: 7px 10px;
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+
+  /* BADGES */
+  .badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .badge-red { background: var(--red-bg); color: var(--red); }
+
+  /* FORM ELEMENTS */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: var(--text2); }
+  .form-group input,
+  .form-group select,
+  input[type="text"], input[type="number"], input[type="date"], select {
+    padding: 8px 11px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,95,170,0.08); }
+
+  /* GRADE BARS */
+  .grade-bar-wrap { margin-bottom: 10px; }
+  .grade-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .grade-bar-bg { background: var(--surface2); border-radius: 20px; height: 8px; overflow: hidden; }
+  .grade-bar-fill { height: 8px; border-radius: 20px; transition: width 0.4s ease; }
+
+  /* PIPELINE */
+  .pipeline { display: flex; margin-top: 6px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .pip-stage { flex: 1; padding: 10px 12px; border-right: 1px solid var(--border); }
+  .pip-stage:last-child { border-right: none; }
+  .pip-label { font-size: 11px; color: var(--text3); margin-bottom: 3px; font-weight: 600; }
+  .pip-val { font-size: 18px; font-weight: 600; }
+
+  /* ATTENDANCE CALENDAR */
+  .att-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 10px; }
+  .att-cell {
+    aspect-ratio: 1;
+    border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+  }
+  .att-p { background: var(--green-bg); color: var(--green); }
+  .att-a { background: var(--red-bg); color: var(--red); }
+  .att-l { background: var(--amber-bg); color: var(--amber); }
+  .att-h { background: var(--surface2); color: var(--text3); }
+  .att-legend { display: flex; gap: 12px; margin-top: 10px; font-size: 11px; color: var(--text3); flex-wrap: wrap; }
+  .att-legend span { display: flex; align-items: center; gap: 4px; }
+  .att-dot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  /* SCHEDULE ROWS */
+  .sched-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .sched-row:last-child { border-bottom: none; }
+  .sched-time { font-size: 11px; color: var(--text3); width: 65px; flex-shrink: 0; font-weight: 600; }
+  .sched-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .sched-subj { font-size: 13px; color: var(--text); font-weight: 500; }
+  .sched-room { font-size: 11px; color: var(--text3); }
+
+  /* ALERT BOXES */
+  .alert {
+    padding: 11px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    margin-bottom: 8px;
+    border-left: 3px solid;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .alert i { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .alert-blue { background: var(--blue-bg); color: #1a4a8a; border-color: var(--blue); }
+  .alert-amber { background: var(--amber-bg); color: var(--amber); border-color: #e6a800; }
+  .alert-green { background: var(--green-bg); color: var(--green); border-color: #4caf50; }
+
+  /* CHECKLIST */
+  .check-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item i { font-size: 16px; }
+  .check-done { color: var(--green); }
+  .check-pending { color: var(--text3); }
+
+  /* SEARCH BAR */
+  .search-wrap {
+    display: flex; gap: 8px; margin-bottom: 14px;
+  }
+  .search-wrap input { flex: 1; }
+
+  input[type="radio"] { accent-color: var(--blue); width: 15px; height: 15px; cursor: pointer; }
+
+  /* ── AI ASSISTANT ── */
+  .ai-nav-item { position: relative; }
+  .ai-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, #7c3aed, #1a5faa);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 20px;
+    letter-spacing: .04em;
+  }
+
+  /* Floating button */
+  #ai-fab {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #1a5faa);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 4px 18px rgba(124,58,237,.4);
+    z-index: 1000;
+    transition: transform .2s, box-shadow .2s;
+  }
+  #ai-fab:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(124,58,237,.5); }
+
+  /* Floating chat panel */
+  #ai-panel {
+    position: fixed;
+    bottom: 92px;
+    right: 28px;
+    width: 370px;
+    max-height: 540px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.14);
+    display: flex; flex-direction: column;
+    z-index: 999;
+    overflow: hidden;
+    transition: opacity .2s, transform .2s;
+  }
+  #ai-panel.hidden { opacity: 0; pointer-events: none; transform: translateY(12px); }
+
+  .ai-panel-head {
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #7c3aed, #1a5faa);
+    color: #fff;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .ai-panel-head i { font-size: 20px; }
+  .ai-panel-title { font-size: 14px; font-weight: 600; flex: 1; }
+  .ai-panel-close { background: none; border: none; color: rgba(255,255,255,.8); cursor: pointer; font-size: 18px; padding: 0; line-height: 1; }
+
+  .ai-msgs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 200px;
+  }
+  .ai-msg { display: flex; gap: 8px; align-items: flex-start; }
+  .ai-msg.user { flex-direction: row-reverse; }
+  .ai-bubble {
+    max-width: 82%;
+    padding: 9px 13px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .ai-msg.bot .ai-bubble { background: var(--surface2); color: var(--text); border-bottom-left-radius: 4px; }
+  .ai-msg.user .ai-bubble { background: linear-gradient(135deg,#7c3aed,#1a5faa); color: #fff; border-bottom-right-radius: 4px; }
+  .ai-msg-avatar {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .ai-msg.bot .ai-msg-avatar { background: linear-gradient(135deg,#7c3aed,#1a5faa); color: #fff; }
+  .ai-msg.user .ai-msg-avatar { background: var(--surface2); color: var(--text2); }
+
+  .ai-typing { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
+  .ai-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); animation: bounce 1.2s infinite; }
+  .ai-dot:nth-child(2) { animation-delay: .2s; }
+  .ai-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+  .ai-input-row {
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: flex-end;
+  }
+  .ai-input-row textarea {
+    flex: 1;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 8px 11px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
+    max-height: 90px;
+    line-height: 1.4;
+  }
+  .ai-input-row textarea:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
+  .ai-send-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#7c3aed,#1a5faa);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: opacity .2s;
+  }
+  .ai-send-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* Chips */
+  .ai-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+  .ai-chip {
+    padding: 5px 11px;
+    border: 1px solid #c4b5fd;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #7c3aed;
+    background: #f5f3ff;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .ai-chip:hover { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+
+  /* Full-page AI assistant */
+  .ai-page-wrap {
+    display: flex;
+    gap: 18px;
+    height: calc(100vh - 110px);
+  }
+  .ai-full-chat {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .ai-full-head {
+    padding: 16px 20px;
+    background: linear-gradient(135deg,#7c3aed,#1a5faa);
+    color: #fff;
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
+  .ai-full-head i { font-size: 24px; }
+  .ai-full-title { font-size: 16px; font-weight: 600; }
+  .ai-full-sub { font-size: 12px; opacity: .8; }
+  .ai-full-msgs {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ai-full-input {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 10px; align-items: flex-end;
+    flex-shrink: 0;
+  }
+  .ai-full-input textarea {
+    flex: 1;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    resize: none;
+    outline: none;
+    background: var(--surface);
+    color: var(--text);
+    max-height: 100px;
+    line-height: 1.5;
+  }
+  .ai-full-input textarea:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
+  .ai-send-full {
+    padding: 10px 20px;
+    background: linear-gradient(135deg,#7c3aed,#1a5faa);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: opacity .2s;
+    flex-shrink: 0;
+  }
+  .ai-send-full:disabled { opacity: .5; cursor: not-allowed; }
+  .ai-send-full i { font-size: 16px; }
+
+  .ai-sidebar-panel {
+    width: 240px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ai-data-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+  }
+  .ai-data-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+  }
+  .ai-data-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .ai-data-item:last-child { border-bottom: none; }
+  .ai-data-item span:first-child { color: var(--text2); }
+  .ai-data-item span:last-child { font-weight: 600; color: var(--text); }
+
+  .ai-suggest-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text2);
+    margin-bottom: 8px;
+  }
+  .ai-suggest-chip {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .ai-suggest-chip:hover { border-color: #7c3aed; color: #7c3aed; background: #f5f3ff; }
+
+  .inline-input {
+    width: 70px; padding: 4px 8px;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+  }
+  .inline-select {
+    padding: 4px 8px;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  @media (max-width: 900px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .sidebar { width: 180px; min-width: 180px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark"><i class="ti ti-school"></i>SMS Portal</div>
+      <div class="logo-sub">Student Management System · USJ</div>
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab active" onclick="switchRole('admin',this)">Admin</button>
+      <button class="role-tab" onclick="switchRole('teacher',this)">Teacher</button>
+      <button class="role-tab" onclick="switchRole('student',this)">Student</button>
+    </div>
+
+    <!-- Admin Nav -->
+    <div id="nav-admin">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" onclick="showPage('admin-dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav-item" onclick="showPage('admin-students',this)"><i class="ti ti-users"></i>Students</div>
+      <div class="nav-item" onclick="showPage('admin-courses',this)"><i class="ti ti-book"></i>Courses</div>
+      <div class="nav-section">Management</div>
+      <div class="nav-item" onclick="showPage('admin-attendance',this)"><i class="ti ti-calendar-check"></i>Attendance</div>
+      <div class="nav-item" onclick="showPage('admin-grades',this)"><i class="ti ti-report-analytics"></i>Grades</div>
+      <div class="nav-item" onclick="showPage('admin-reports',this)"><i class="ti ti-file-export"></i>Reports</div>
+      <div class="nav-section">AI</div>
+      <div class="nav-item ai-nav-item" onclick="showPage('ai-assistant',this)"><i class="ti ti-robot"></i>AI Assistant<span class="ai-badge">NEW</span></div>
+    </div>
+
+    <!-- Teacher Nav -->
+    <div id="nav-teacher" style="display:none">
+      <div class="nav-section">My Classes</div>
+      <div class="nav-item active" onclick="showPage('teacher-dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav-item" onclick="showPage('teacher-attendance',this)"><i class="ti ti-calendar-check"></i>Mark Attendance</div>
+      <div class="nav-item" onclick="showPage('teacher-grades',this)"><i class="ti ti-pencil"></i>Enter Grades</div>
+      <div class="nav-item" onclick="showPage('teacher-schedule',this)"><i class="ti ti-clock"></i>My Schedule</div>
+      <div class="nav-section">AI</div>
+      <div class="nav-item ai-nav-item" onclick="showPage('ai-assistant',this)"><i class="ti ti-robot"></i>AI Assistant<span class="ai-badge">NEW</span></div>
+    </div>
+
+    <!-- Student Nav -->
+    <div id="nav-student" style="display:none">
+      <div class="nav-section">My Portal</div>
+      <div class="nav-item active" onclick="showPage('student-dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav-item" onclick="showPage('student-attendance',this)"><i class="ti ti-calendar"></i>My Attendance</div>
+      <div class="nav-item" onclick="showPage('student-grades',this)"><i class="ti ti-chart-bar"></i>My Grades</div>
+      <div class="nav-item" onclick="showPage('student-schedule',this)"><i class="ti ti-clock"></i>Schedule</div>
+      <div class="nav-section">AI</div>
+      <div class="nav-item ai-nav-item" onclick="showPage('ai-assistant',this)"><i class="ti ti-robot"></i>AI Assistant<span class="ai-badge">NEW</span></div>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">AD</div>
+        <div>
+          <div class="user-name" id="user-name">Admin User</div>
+          <div class="user-role-label" id="user-role-label">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <button class="btn"><i class="ti ti-bell"></i>Notifications</button>
+        <button class="btn btn-primary"><i class="ti ti-search"></i>Search</button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ==================== ADMIN PAGES ==================== -->
+
+      <!-- Admin Dashboard -->
+      <div class="page active" id="admin-dashboard">
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-icon si-blue"><i class="ti ti-users"></i></div>
+            <div class="stat-label">Total Students</div>
+            <div class="stat-val">1,248</div>
+            <div class="stat-delta">↑ 12 enrolled this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-green"><i class="ti ti-book"></i></div>
+            <div class="stat-label">Active Courses</div>
+            <div class="stat-val">34</div>
+            <div class="stat-delta">↑ 3 new courses added</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-amber"><i class="ti ti-calendar-check"></i></div>
+            <div class="stat-label">Avg Attendance</div>
+            <div class="stat-val">87%</div>
+            <div class="stat-delta">↑ 2% vs last week</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon si-red"><i class="ti ti-chalkboard"></i></div>
+            <div class="stat-label">Teachers</div>
+            <div class="stat-val">56</div>
+            <div class="stat-delta">Across 4 departments</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Recent Enrollments</span>
+              <button class="btn btn-sm"><i class="ti ti-arrow-right"></i>View all</button>
+            </div>
+            <table>
+              <thead><tr><th>Student</th><th>Course</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>R. Perera</td><td>CS301</td><td>May 15</td><td><span class="badge badge-green">Enrolled</span></td></tr>
+                <tr><td>A. Silva</td><td>MA201</td><td>May 14</td><td><span class="badge badge-green">Enrolled</span></td></tr>
+                <tr><td>K. Fernando</td><td>EN102</td><td>May 13</td><td><span class="badge badge-amber">Pending</span></td></tr>
+                <tr><td>N. Jayasena</td><td>CS401</td><td>May 12</td><td><span class="badge badge-green">Enrolled</span></td></tr>
+                <tr><td>S. Wickrama</td><td>CS301</td><td>May 11</td><td><span class="badge badge-blue">Processing</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Attendance by Course</span></div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>CS301 — Software Engineering</span><span style="color:var(--green);font-weight:600">92%</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:92%;background:#1a5faa"></div></div>
+            </div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>MA201 — Mathematics II</span><span style="color:var(--green);font-weight:600">85%</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:85%;background:#2e7d32"></div></div>
+            </div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>EN102 — Technical English</span><span style="color:var(--amber);font-weight:600">78%</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:78%;background:#f9a825"></div></div>
+            </div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>CS401 — Data Structures</span><span style="color:var(--green);font-weight:600">90%</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:90%;background:#1a5faa"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Students -->
+      <div class="page" id="admin-students">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Student Records</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn"><i class="ti ti-filter"></i>Filter</button>
+              <button class="btn btn-primary"><i class="ti ti-plus"></i>Add Student</button>
+            </div>
+          </div>
+          <div class="search-wrap">
+            <input type="text" placeholder="Search by name or student ID...">
+            <select><option>All Departments</option><option>Computing</option><option>Engineering</option><option>Science</option></select>
+            <select><option>All Years</option><option>1st Year</option><option>2nd Year</option><option>3rd Year</option></select>
+          </div>
+          <table>
+            <thead><tr><th>Student ID</th><th>Full Name</th><th>Department</th><th>Year</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td>FC222010</td><td>R.A.D.S. Methmini</td><td>Computing</td><td>2nd</td><td>methmini@usj.ac.lk</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>FC222015</td><td>K.G.A.K. Sathsarani</td><td>Computing</td><td>2nd</td><td>sathsarani@usj.ac.lk</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>FC222016</td><td>R.D.R.P. Ranasinghe</td><td>Computing</td><td>2nd</td><td>ranasinghe@usj.ac.lk</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>FC222022</td><td>M.A. Samarakoon</td><td>Computing</td><td>2nd</td><td>samarakoon@usj.ac.lk</td><td><span class="badge badge-amber">On Leave</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>FC222032</td><td>R.S. Daraniyagala</td><td>Computing</td><td>2nd</td><td>daraniyagala@usj.ac.lk</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>FC222038</td><td>N.G.N.S. Niralgama</td><td>Computing</td><td>2nd</td><td>niralgama@usj.ac.lk</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>FC222039</td><td>G.A.L.H. Seneviratne</td><td>Computing</td><td>2nd</td><td>seneviratne@usj.ac.lk</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Add / Edit Student</span></div>
+          <div class="form-row">
+            <div class="form-group"><label>Student ID</label><input type="text" placeholder="FC222xxx"></div>
+            <div class="form-group"><label>Full Name</label><input type="text" placeholder="Full name"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Email</label><input type="text" placeholder="student@usj.ac.lk"></div>
+            <div class="form-group"><label>Department</label><select><option>Computing</option><option>Engineering</option><option>Science</option><option>Management</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Academic Year</label><select><option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option></select></div>
+            <div class="form-group"><label>Status</label><select><option>Active</option><option>On Leave</option><option>Graduated</option><option>Withdrawn</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="btn btn-primary"><i class="ti ti-device-floppy"></i>Save Student</button>
+            <button class="btn">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Courses -->
+      <div class="page" id="admin-courses">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Course Management</span>
+            <button class="btn btn-primary"><i class="ti ti-plus"></i>New Course</button>
+          </div>
+          <table>
+            <thead><tr><th>Code</th><th>Course Name</th><th>Assigned Teacher</th><th>Students</th><th>Credits</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td>CS301</td><td>Software Engineering</td><td>Dr. Gunawardena</td><td>64</td><td>3</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>CS401</td><td>Data Structures</td><td>Ms. Perera</td><td>58</td><td>3</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>MA201</td><td>Mathematics II</td><td>Dr. Bandara</td><td>72</td><td>4</td><td><span class="badge badge-green">Active</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+              <tr><td>EN102</td><td>Technical English</td><td>Ms. Kumari</td><td>80</td><td>2</td><td><span class="badge badge-amber">Draft</span></td><td><button class="btn btn-sm"><i class="ti ti-edit"></i></button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Assign Course to Student</span></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Select Student</label>
+              <select>
+                <option>FC222038 — N.G.N.S. Niralgama</option>
+                <option>FC222039 — G.A.L.H. Seneviratne</option>
+                <option>FC222015 — K.G.A.K. Sathsarani</option>
+                <option>FC222016 — R.D.R.P. Ranasinghe</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Select Course</label>
+              <select>
+                <option>CS301 — Software Engineering</option>
+                <option>CS401 — Data Structures</option>
+                <option>MA201 — Mathematics II</option>
+                <option>EN102 — Technical English</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary"><i class="ti ti-link"></i>Assign Course</button>
+        </div>
+      </div>
+
+      <!-- Admin Attendance -->
+      <div class="page" id="admin-attendance">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Attendance Summary — May 2025</span></div>
+            <div class="pipeline">
+              <div class="pip-stage"><div class="pip-label">Present</div><div class="pip-val" style="color:var(--green)">1,089</div></div>
+              <div class="pip-stage"><div class="pip-label">Absent</div><div class="pip-val" style="color:var(--red)">112</div></div>
+              <div class="pip-stage"><div class="pip-label">Late</div><div class="pip-val" style="color:var(--amber)">47</div></div>
+            </div>
+            <div class="att-grid">
+              <div style="font-size:10px;color:var(--text3);text-align:center;font-weight:600">Mon</div>
+              <div style="font-size:10px;color:var(--text3);text-align:center;font-weight:600">Tue</div>
+              <div style="font-size:10px;color:var(--text3);text-align:center;font-weight:600">Wed</div>
+              <div style="font-size:10px;color:var(--text3);text-align:center;font-weight:600">Thu</div>
+              <div style="font-size:10px;color:var(--text3);text-align:center;font-weight:600">Fri</div>
+              <div style="font-size:10px;color:var(--text3);text-align:center;font-weight:600">Sat</div>
+              <div style="font-size:10px;color:var(--text3);text-align:center;font-weight:600">Sun</div>
+              <div class="att-cell att-p">1</div><div class="att-cell att-p">2</div><div class="att-cell att-p">3</div><div class="att-cell att-l">4</div><div class="att-cell att-p">5</div><div class="att-cell att-h">6</div><div class="att-cell att-h">7</div>
+              <div class="att-cell att-p">8</div><div class="att-cell att-a">9</div><div class="att-cell att-p">10</div><div class="att-cell att-p">11</div><div class="att-cell att-p">12</div><div class="att-cell att-h">13</div><div class="att-cell att-h">14</div>
+              <div class="att-cell att-p">15</div><div class="att-cell att-p">16</div><div class="att-cell att-p">17</div><div class="att-cell att-p">18</div><div class="att-cell att-l">19</div><div class="att-cell att-h">20</div><div class="att-cell att-h">21</div>
+              <div class="att-cell att-p">22</div><div class="att-cell att-p">23</div><div class="att-cell att-a">24</div><div class="att-cell att-p">25</div><div class="att-cell att-p">26</div><div class="att-cell att-h">27</div><div class="att-cell att-h">28</div>
+            </div>
+            <div class="att-legend">
+              <span><span class="att-dot" style="background:var(--green-bg)"></span>Present</span>
+              <span><span class="att-dot" style="background:var(--red-bg)"></span>Absent</span>
+              <span><span class="att-dot" style="background:var(--amber-bg)"></span>Late</span>
+              <span><span class="att-dot" style="background:var(--surface2)"></span>Holiday</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Mark Attendance</span></div>
+            <div class="form-group" style="margin-bottom:10px">
+              <label>Course</label>
+              <select><option>CS301 — Software Engineering</option><option>CS401 — Data Structures</option></select>
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+              <label>Date</label>
+              <input type="date" value="2025-05-17">
+            </div>
+            <table>
+              <thead><tr><th>Student</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>FC222038 — Niralgama</td><td><select class="inline-select"><option>Present</option><option>Absent</option><option>Late</option></select></td></tr>
+                <tr><td>FC222039 — Seneviratne</td><td><select class="inline-select"><option>Present</option><option>Absent</option><option>Late</option></select></td></tr>
+                <tr><td>FC222015 — Sathsarani</td><td><select class="inline-select"><option>Absent</option><option>Present</option><option>Late</option></select></td></tr>
+                <tr><td>FC222016 — Ranasinghe</td><td><select class="inline-select"><option>Late</option><option>Present</option><option>Absent</option></select></td></tr>
+              </tbody>
+            </table>
+            <button class="btn btn-primary" style="margin-top:12px;width:100%;justify-content:center"><i class="ti ti-check"></i>Save Attendance</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Grades -->
+      <div class="page" id="admin-grades">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Grade Management</span></div>
+          <div class="form-row">
+            <div class="form-group"><label>Course</label><select><option>CS301 — Software Engineering</option><option>CS401 — Data Structures</option><option>MA201 — Mathematics II</option></select></div>
+            <div class="form-group"><label>Assessment</label><select><option>Mid Exam</option><option>Final Exam</option><option>Assignment 1</option><option>Assignment 2</option></select></div>
+          </div>
+          <table>
+            <thead><tr><th>Student ID</th><th>Name</th><th>Marks (/100)</th><th>Grade</th><th>Remarks</th></tr></thead>
+            <tbody>
+              <tr><td>FC222038</td><td>Niralgama</td><td><input type="number" class="inline-input" value="85"></td><td><span class="badge badge-green">A</span></td><td>Excellent</td></tr>
+              <tr><td>FC222039</td><td>Seneviratne</td><td><input type="number" class="inline-input" value="72"></td><td><span class="badge badge-blue">B</span></td><td>Good</td></tr>
+              <tr><td>FC222015</td><td>Sathsarani</td><td><input type="number" class="inline-input" value="91"></td><td><span class="badge badge-green">A+</span></td><td>Outstanding</td></tr>
+              <tr><td>FC222016</td><td>Ranasinghe</td><td><input type="number" class="inline-input" value="58"></td><td><span class="badge badge-amber">C</span></td><td>Needs improvement</td></tr>
+              <tr><td>FC222022</td><td>Samarakoon</td><td><input type="number" class="inline-input" value="67"></td><td><span class="badge badge-blue">B-</span></td><td>Average</td></tr>
+            </tbody>
+          </table>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-primary"><i class="ti ti-device-floppy"></i>Save Grades</button>
+            <button class="btn"><i class="ti ti-file-type-pdf"></i>Export Results</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Reports -->
+      <div class="page" id="admin-reports">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Generate Reports</span></div>
+            <div class="form-group" style="margin-bottom:10px"><label>Report Type</label><select><option>Attendance Report</option><option>Grade Report</option><option>Enrollment Report</option><option>Student Performance</option></select></div>
+            <div class="form-group" style="margin-bottom:10px"><label>Department</label><select><option>All Departments</option><option>Computing</option><option>Engineering</option><option>Science</option></select></div>
+            <div class="form-row">
+              <div class="form-group"><label>From Date</label><input type="date" value="2025-01-01"></div>
+              <div class="form-group"><label>To Date</label><input type="date" value="2025-05-17"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn btn-primary"><i class="ti ti-file-type-pdf"></i>Export PDF</button>
+              <button class="btn"><i class="ti ti-table-export"></i>Export Excel</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Project Deliverables</span></div>
+            <div class="check-item check-done"><i class="ti ti-circle-check"></i>GitHub Source Code Repository</div>
+            <div class="check-item check-done"><i class="ti ti-circle-check"></i>Project Report (PDF)</div>
+            <div class="check-item check-done"><i class="ti ti-circle-check"></i>Dockerfile &amp; docker-compose.yml</div>
+            <div class="check-item check-done"><i class="ti ti-circle-check"></i>CI/CD Pipeline Config (.yml)</div>
+            <div class="check-item check-pending"><i class="ti ti-circle"></i>Screenshots / Video Demo</div>
+            <div class="check-item check-pending"><i class="ti ti-circle"></i>Live Deployment Link (Render)</div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ==================== TEACHER PAGES ==================== -->
+
+      <!-- Teacher Dashboard -->
+      <div class="page" id="teacher-dashboard">
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-icon si-blue"><i class="ti ti-users"></i></div><div class="stat-label">My Students</div><div class="stat-val">142</div></div>
+          <div class="stat-card"><div class="stat-icon si-green"><i class="ti ti-book"></i></div><div class="stat-label">My Courses</div><div class="stat-val">3</div></div>
+          <div class="stat-card"><div class="stat-icon si-amber"><i class="ti ti-calendar-event"></i></div><div class="stat-label">Today's Classes</div><div class="stat-val">2</div></div>
+          <div class="stat-card"><div class="stat-icon si-red"><i class="ti ti-file-alert"></i></div><div class="stat-label">Pending Grades</div><div class="stat-val">28</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Today's Schedule</span></div>
+            <div class="sched-row">
+              <div class="sched-time">08:00 AM</div>
+              <div class="sched-dot" style="background:var(--blue)"></div>
+              <div><div class="sched-subj">CS301 — Software Engineering</div><div class="sched-room">Room A201 · 64 students</div></div>
+            </div>
+            <div class="sched-row">
+              <div class="sched-time">10:00 AM</div>
+              <div class="sched-dot" style="background:var(--green)"></div>
+              <div><div class="sched-subj">CS401 — Data Structures</div><div class="sched-room">Room B105 · 58 students</div></div>
+            </div>
+            <div class="sched-row">
+              <div class="sched-time">02:00 PM</div>
+              <div class="sched-dot" style="background:var(--text3)"></div>
+              <div><div class="sched-subj" style="color:var(--text3)">Office Hours</div><div class="sched-room">Staff Block — Room 3</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Attendance Alerts</span></div>
+            <div class="alert alert-amber"><i class="ti ti-alert-triangle"></i>FC222016 — Ranasinghe has missed 4 consecutive classes in CS301.</div>
+            <div class="alert alert-amber"><i class="ti ti-alert-triangle"></i>FC222022 — Samarakoon attendance is at 65% — below required 75%.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teacher Attendance -->
+      <div class="page" id="teacher-attendance">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Mark Attendance</span></div>
+          <div class="form-row">
+            <div class="form-group"><label>Select Course</label><select><option>CS301 — Software Engineering</option><option>CS401 — Data Structures</option></select></div>
+            <div class="form-group"><label>Date</label><input type="date" value="2025-05-17"></div>
+          </div>
+          <table style="margin-top:8px">
+            <thead><tr><th>Student ID</th><th>Name</th><th>Present</th><th>Absent</th><th>Late</th></tr></thead>
+            <tbody>
+              <tr><td>FC222038</td><td>N.G.N.S. Niralgama</td><td><input type="radio" name="a1" checked></td><td><input type="radio" name="a1"></td><td><input type="radio" name="a1"></td></tr>
+              <tr><td>FC222039</td><td>G.A.L.H. Seneviratne</td><td><input type="radio" name="a2" checked></td><td><input type="radio" name="a2"></td><td><input type="radio" name="a2"></td></tr>
+              <tr><td>FC222015</td><td>K.G.A.K. Sathsarani</td><td><input type="radio" name="a3"></td><td><input type="radio" name="a3" checked></td><td><input type="radio" name="a3"></td></tr>
+              <tr><td>FC222016</td><td>R.D.R.P. Ranasinghe</td><td><input type="radio" name="a4"></td><td><input type="radio" name="a4"></td><td><input type="radio" name="a4" checked></td></tr>
+              <tr><td>FC222022</td><td>M.A. Samarakoon</td><td><input type="radio" name="a5" checked></td><td><input type="radio" name="a5"></td><td><input type="radio" name="a5"></td></tr>
+            </tbody>
+          </table>
+          <div style="display:flex;gap:8px;margin-top:14px">
+            <button class="btn btn-primary"><i class="ti ti-check"></i>Submit Attendance</button>
+            <button class="btn"><i class="ti ti-refresh"></i>Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teacher Grades -->
+      <div class="page" id="teacher-grades">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Enter Grades</span></div>
+          <div class="form-row">
+            <div class="form-group"><label>Course</label><select><option>CS301 — Software Engineering</option><option>CS401 — Data Structures</option></select></div>
+            <div class="form-group"><label>Assessment Type</label><select><option>Final Exam</option><option>Mid Exam</option><option>Assignment 1</option></select></div>
+          </div>
+          <table style="margin-top:8px">
+            <thead><tr><th>Student</th><th>Score (/100)</th><th>Auto Grade</th><th>Remarks</th></tr></thead>
+            <tbody>
+              <tr><td>FC222038 — Niralgama</td><td><input type="number" class="inline-input" value="85"></td><td><span class="badge badge-green">A</span></td><td><input type="text" class="inline-input" style="width:110px" value="Excellent"></td></tr>
+              <tr><td>FC222039 — Seneviratne</td><td><input type="number" class="inline-input" value="72"></td><td><span class="badge badge-blue">B</span></td><td><input type="text" class="inline-input" style="width:110px" value="Good"></td></tr>
+              <tr><td>FC222015 — Sathsarani</td><td><input type="number" class="inline-input" value="91"></td><td><span class="badge badge-green">A+</span></td><td><input type="text" class="inline-input" style="width:110px" value="Outstanding"></td></tr>
+              <tr><td>FC222016 — Ranasinghe</td><td><input type="number" class="inline-input" value="58"></td><td><span class="badge badge-amber">C</span></td><td><input type="text" class="inline-input" style="width:110px" value="Needs review"></td></tr>
+            </tbody>
+          </table>
+          <button class="btn btn-primary" style="margin-top:14px"><i class="ti ti-device-floppy"></i>Publish Grades</button>
+        </div>
+      </div>
+
+      <!-- Teacher Schedule -->
+      <div class="page" id="teacher-schedule">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Weekly Timetable</span></div>
+          <table>
+            <thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Room</th><th>Students</th></tr></thead>
+            <tbody>
+              <tr><td>Monday</td><td>08:00 – 10:00</td><td>CS301 — Software Engineering</td><td>A201</td><td>64</td></tr>
+              <tr><td>Monday</td><td>10:00 – 12:00</td><td>CS401 — Data Structures</td><td>B105</td><td>58</td></tr>
+              <tr><td>Wednesday</td><td>08:00 – 10:00</td><td>CS301 — Software Engineering</td><td>A201</td><td>64</td></tr>
+              <tr><td>Wednesday</td><td>14:00 – 16:00</td><td>MA201 — Mathematics II</td><td>C302</td><td>72</td></tr>
+              <tr><td>Thursday</td><td>14:00 – 15:00</td><td>Office Hours</td><td>Staff Block</td><td>—</td></tr>
+              <tr><td>Friday</td><td>10:00 – 12:00</td><td>CS401 — Data Structures</td><td>B105</td><td>58</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <!-- ==================== STUDENT PAGES ==================== -->
+
+      <!-- Student Dashboard -->
+      <div class="page" id="student-dashboard">
+        <div class="stat-row">
+          <div class="stat-card"><div class="stat-icon si-blue"><i class="ti ti-book"></i></div><div class="stat-label">Enrolled Courses</div><div class="stat-val">5</div></div>
+          <div class="stat-card"><div class="stat-icon si-green"><i class="ti ti-calendar-check"></i></div><div class="stat-label">My Attendance</div><div class="stat-val">88%</div></div>
+          <div class="stat-card"><div class="stat-icon si-amber"><i class="ti ti-chart-bar"></i></div><div class="stat-label">Current GPA</div><div class="stat-val">3.6</div></div>
+          <div class="stat-card"><div class="stat-icon si-red"><i class="ti ti-alert-circle"></i></div><div class="stat-label">Pending Tasks</div><div class="stat-val">2</div></div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><span class="card-title">My Enrolled Courses</span></div>
+            <table>
+              <thead><tr><th>Code</th><th>Course</th><th>Teacher</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>CS301</td><td>Software Engineering</td><td>Dr. Gunawardena</td><td><span class="badge badge-green">On Track</span></td></tr>
+                <tr><td>CS401</td><td>Data Structures</td><td>Ms. Perera</td><td><span class="badge badge-blue">On Track</span></td></tr>
+                <tr><td>MA201</td><td>Mathematics II</td><td>Dr. Bandara</td><td><span class="badge badge-amber">At Risk</span></td></tr>
+                <tr><td>EN102</td><td>Technical English</td><td>Ms. Kumari</td><td><span class="badge badge-green">On Track</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Announcements</span></div>
+            <div class="alert alert-blue"><i class="ti ti-speakerphone"></i>CS301 Mid-exam scheduled for May 24. Review chapters 4–8.</div>
+            <div class="alert alert-green"><i class="ti ti-git-branch"></i>Assignment 2 for CS401 due May 20. Submit via GitHub repository.</div>
+            <div class="alert alert-amber"><i class="ti ti-alert-triangle"></i>MA201 attendance is below 75%. Attend regularly to avoid penalty.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Attendance -->
+      <div class="page" id="student-attendance">
+        <div class="card">
+          <div class="card-header"><span class="card-title">My Attendance Record</span></div>
+          <table>
+            <thead><tr><th>Course</th><th>Total Classes</th><th>Present</th><th>Absent</th><th>Late</th><th>Attendance %</th></tr></thead>
+            <tbody>
+              <tr><td>CS301 — Software Engineering</td><td>20</td><td>19</td><td>1</td><td>0</td><td><span class="badge badge-green">95%</span></td></tr>
+              <tr><td>CS401 — Data Structures</td><td>20</td><td>17</td><td>2</td><td>1</td><td><span class="badge badge-green">85%</span></td></tr>
+              <tr><td>MA201 — Mathematics II</td><td>20</td><td>14</td><td>5</td><td>1</td><td><span class="badge badge-amber">70%</span></td></tr>
+              <tr><td>EN102 — Technical English</td><td>20</td><td>18</td><td>2</td><td>0</td><td><span class="badge badge-green">90%</span></td></tr>
+            </tbody>
+          </table>
+          <div class="alert alert-amber" style="margin-top:14px"><i class="ti ti-alert-triangle"></i>Your attendance in MA201 — Mathematics II is at 70%, which is below the required 75%. Please attend regularly to avoid academic penalty.</div>
+        </div>
+      </div>
+
+      <!-- Student Grades -->
+      <div class="page" id="student-grades">
+        <div class="card">
+          <div class="card-header"><span class="card-title">My Grade Report</span><button class="btn btn-sm"><i class="ti ti-file-type-pdf"></i>Download</button></div>
+          <table>
+            <thead><tr><th>Course</th><th>Mid Exam</th><th>Final Exam</th><th>Assignment</th><th>Total</th><th>Grade</th></tr></thead>
+            <tbody>
+              <tr><td>CS301 — Software Engineering</td><td>78</td><td>85</td><td>90</td><td>84.3</td><td><span class="badge badge-green">A</span></td></tr>
+              <tr><td>CS401 — Data Structures</td><td>72</td><td>70</td><td>80</td><td>74</td><td><span class="badge badge-blue">B+</span></td></tr>
+              <tr><td>MA201 — Mathematics II</td><td>58</td><td>—</td><td>65</td><td>61.5</td><td><span class="badge badge-amber">C+</span></td></tr>
+              <tr><td>EN102 — Technical English</td><td>88</td><td>82</td><td>95</td><td>88.3</td><td><span class="badge badge-green">A</span></td></tr>
+            </tbody>
+          </table>
+          <div style="margin-top:16px">
+            <div class="card-title" style="margin-bottom:12px">Performance Overview</div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>CS301 — Software Engineering</span><span style="color:var(--green);font-weight:600">A (84%)</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:84%;background:#1a5faa"></div></div>
+            </div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>CS401 — Data Structures</span><span style="color:var(--blue);font-weight:600">B+ (74%)</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:74%;background:#2e7d32"></div></div>
+            </div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>MA201 — Mathematics II</span><span style="color:var(--amber);font-weight:600">C+ (62%)</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:62%;background:#f9a825"></div></div>
+            </div>
+            <div class="grade-bar-wrap">
+              <div class="grade-bar-label"><span>EN102 — Technical English</span><span style="color:var(--green);font-weight:600">A (88%)</span></div>
+              <div class="grade-bar-bg"><div class="grade-bar-fill" style="width:88%;background:#1a5faa"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Schedule -->
+      <div class="page" id="student-schedule">
+        <div class="card">
+          <div class="card-header"><span class="card-title">My Class Timetable</span></div>
+          <table>
+            <thead><tr><th>Day</th><th>Time</th><th>Course</th><th>Room</th><th>Teacher</th></tr></thead>
+            <tbody>
+              <tr><td>Monday</td><td>08:00 – 10:00</td><td>CS301 — Software Engineering</td><td>A201</td><td>Dr. Gunawardena</td></tr>
+              <tr><td>Monday</td><td>14:00 – 16:00</td><td>EN102 — Technical English</td><td>D104</td><td>Ms. Kumari</td></tr>
+              <tr><td>Tuesday</td><td>09:00 – 11:00</td><td>MA201 — Mathematics II</td><td>C302</td><td>Dr. Bandara</td></tr>
+              <tr><td>Wednesday</td><td>08:00 – 10:00</td><td>CS301 — Software Engineering</td><td>A201</td><td>Dr. Gunawardena</td></tr>
+              <tr><td>Thursday</td><td>10:00 – 12:00</td><td>CS401 — Data Structures</td><td>B105</td><td>Ms. Perera</td></tr>
+              <tr><td>Friday</td><td>08:00 – 10:00</td><td>MA201 — Mathematics II</td><td>C302</td><td>Dr. Bandara</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AI ASSISTANT PAGE (role-aware, rebuilt dynamically by JS) -->
+      <div class="page" id="ai-assistant">
+        <div class="ai-page-wrap">
+          <!-- Main chat -->
+          <div class="ai-full-chat">
+            <!-- Header changes per role -->
+            <div class="ai-full-head" id="ai-full-head">
+              <i class="ti ti-robot"></i>
+              <div>
+                <div class="ai-full-title" id="ai-full-title">AI Assistant</div>
+                <div class="ai-full-sub" id="ai-full-sub">Loading…</div>
+              </div>
+              <!-- Role badge -->
+              <div id="ai-role-badge" style="margin-left:auto;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,.2);letter-spacing:.05em"></div>
+            </div>
+
+            <!-- Access notice banner (hidden for admin) -->
+            <div id="ai-access-notice" style="display:none;padding:9px 16px;font-size:12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)">
+              <i class="ti ti-shield-lock" style="font-size:15px;flex-shrink:0"></i>
+              <span id="ai-access-text"></span>
+            </div>
+
+            <div class="ai-full-msgs" id="full-msgs"></div>
+
+            <!-- Suggested chips — populated by JS -->
+            <div class="ai-chips" id="full-chips"></div>
+
+            <div class="ai-full-input">
+              <textarea id="full-input" rows="1" placeholder="Ask a question…" onkeydown="fullKeyDown(event)"></textarea>
+              <button class="ai-send-full" id="full-send-btn" onclick="fullSend()"><i class="ti ti-send"></i>Ask</button>
+            </div>
+          </div>
+
+          <!-- Right sidebar — populated by JS -->
+          <div class="ai-sidebar-panel" id="ai-sidebar-panel"></div>
+        </div>
+      </div>
+
+    </div><!-- end content-area -->
+  </div><!-- end main -->
+</div><!-- end layout -->
+
+<!-- Floating AI button -->
+<button id="ai-fab" onclick="togglePanel()" title="AI Assistant"><i class="ti ti-robot"></i></button>
+
+<!-- Floating AI panel -->
+<div id="ai-panel" class="hidden">
+  <div class="ai-panel-head" id="panel-head">
+    <i class="ti ti-robot"></i>
+    <span class="ai-panel-title" id="panel-title">AI Assistant</span>
+    <span id="panel-role-chip" style="margin-left:auto;margin-right:6px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(255,255,255,.25)"></span>
+    <button class="ai-panel-close" onclick="togglePanel()"><i class="ti ti-x"></i></button>
+  </div>
+  <!-- small access notice inside panel -->
+  <div id="panel-notice" style="display:none;padding:7px 12px;font-size:11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px"></div>
+  <div class="ai-msgs" id="panel-msgs"></div>
+  <div class="ai-chips" id="panel-chips"></div>
+  <div class="ai-input-row">
+    <textarea id="panel-input" rows="1" placeholder="Ask a question…" onkeydown="panelKeyDown(event)"></textarea>
+    <button class="ai-send-btn" id="panel-send-btn" onclick="panelSend()"><i class="ti ti-send"></i></button>
+  </div>
+</div>
+
+<script>
+  /* ══════════════════════════════════════════════
+     ROLE CONFIG
+  ══════════════════════════════════════════════ */
+  const roleUsers = {
+    admin:   { initials: 'AD', name: 'Admin User',          role: 'Administrator' },
+    teacher: { initials: 'TP', name: 'Dr. T. Perera',       role: 'Teacher' },
+    student: { initials: 'KS', name: 'K.G.A.K. Sathsarani', role: 'Student — FC222015' }
+  };
+
+  const pageTitles = {
+    'admin-dashboard':'Dashboard','admin-students':'Students','admin-courses':'Courses',
+    'admin-attendance':'Attendance','admin-grades':'Grades','admin-reports':'Reports',
+    'teacher-dashboard':'Dashboard','teacher-attendance':'Mark Attendance',
+    'teacher-grades':'Enter Grades','teacher-schedule':'My Schedule',
+    'student-dashboard':'Dashboard','student-attendance':'My Attendance',
+    'student-grades':'My Grades','student-schedule':'Schedule',
+    'ai-assistant':'AI Assistant'
+  };
+
+  let currentRole = 'admin';
+
+  /* ══════════════════════════════════════════════
+     PER-ROLE AI CONFIG
+  ══════════════════════════════════════════════ */
+  const AI_ROLES = {
+
+    /* ── ADMIN: full access to all data ── */
+    admin: {
+      label: 'Admin Access',
+      headGradient: 'linear-gradient(135deg,#7c3aed,#1a5faa)',
+      title: 'Admin AI Assistant',
+      sub: 'Full access — all students, courses, grades &amp; analytics',
+      notice: null,
+      greeting: `👋 Hello, Admin! I have **full access** to all student records, grades, attendance, and course data across the faculty.\n\nAsk me anything — from individual student performance to faculty-wide analytics.`,
+      chips: ['Who has lowest attendance?','Top performer overall?','Students at risk this semester?','Average GPA for CS301?','How many students are on leave?'],
+      panelChips: ['At-risk students?','Top student?','Failed MA201?'],
+      panelPlaceholder: 'Ask about any student, course or stat…',
+      fullPlaceholder: 'Ask about any student, course, grade or attendance…',
+      sidebarLabel: 'Faculty Overview',
+      sidebarStats: [
+        ['Total Students','1,248'],['Active Courses','34'],['Avg Attendance','87%'],
+        ['Students at Risk','<span style="color:var(--red);font-weight:700">47</span>'],['Faculty Avg GPA','3.2']
+      ],
+      sidebarSuggestions: [
+        'Which students failed MA201?',"Ranasinghe's full attendance",'All students on leave',
+        'Average grade for each course','Who missed more than 5 classes?','Best GPA in department?'
+      ],
+      systemPrompt: `You are an AI assistant for the Administrator of the Student Management System (SMS), Faculty of Computing, University of Sri Jayewardenepura (USJ), Sri Lanka.
+You have FULL access to all student records, grades, attendance, and course data. Answer all questions accurately and in detail.
+
+=== ALL STUDENTS ===
+FC222010 | R.A.D.S. Methmini     | Computing | 2nd Year | Active
+FC222015 | K.G.A.K. Sathsarani   | Computing | 2nd Year | Active
+FC222016 | R.D.R.P. Ranasinghe   | Computing | 2nd Year | Active  (ATTENDANCE RISK)
+FC222022 | M.A. Samarakoon       | Computing | 2nd Year | On Leave (AT RISK)
+FC222032 | R.S. Daraniyagala     | Computing | 2nd Year | Active
+FC222038 | N.G.N.S. Niralgama    | Computing | 2nd Year | Active
+FC222039 | G.A.L.H. Seneviratne  | Computing | 2nd Year | Active
+
+=== COURSES ===
+CS301 Software Engineering | Dr. Gunawardena | 64 students | 3 credits | Active
+CS401 Data Structures      | Ms. Perera      | 58 students | 3 credits | Active
+MA201 Mathematics II       | Dr. Bandara     | 72 students | 4 credits | Active
+EN102 Technical English    | Ms. Kumari      | 80 students | 2 credits | Draft
+
+=== ATTENDANCE ===
+Niralgama:    CS301=95% CS401=85% MA201=88% EN102=90% | Overall 89.5%
+Seneviratne:  CS301=90% CS401=80% MA201=75% EN102=88% | Overall 83.3%
+Sathsarani:   CS301=92% CS401=88% MA201=70% EN102=95% | Overall 86.3%
+Ranasinghe:   CS301=60% CS401=72% MA201=65% EN102=78% | Overall 68.8% BELOW 75%
+Samarakoon:   CS301=65% CS401=70% MA201=60% EN102=72% | Overall 66.8% BELOW 75%
+Methmini:     CS301=88% CS401=85% MA201=82% EN102=91% | Overall 86.5%
+Daraniyagala: CS301=91% CS401=88% MA201=79% EN102=93% | Overall 87.8%
+
+=== GRADES & GPA ===
+Niralgama:    CS301=85(A)  CS401=78(B+) MA201=80(A-) EN102=90(A+) | GPA 3.8 (HIGHEST)
+Seneviratne:  CS301=72(B)  CS401=68(C+) MA201=70(B-) EN102=75(B)  | GPA 3.1
+Sathsarani:   CS301=91(A+) CS401=88(A)  MA201=62(C+) EN102=93(A+) | GPA 3.7
+Ranasinghe:   CS301=58(C)  CS401=65(C+) MA201=52(D)  EN102=70(B-) | GPA 2.5 (LOWEST)
+Samarakoon:   CS301=67(C+) CS401=70(B-) MA201=58(C)  EN102=72(B)  | GPA 2.9
+Methmini:     CS301=80(A-) CS401=76(B+) MA201=78(B+) EN102=88(A)  | GPA 3.5
+Daraniyagala: CS301=85(A)  CS401=82(A-) MA201=75(B+) EN102=89(A)  | GPA 3.7
+
+=== FACULTY SUMMARY ===
+Total: 1,248 students | Active: 1,190 | On Leave: 58 | Teachers: 56 | Dept: 4
+Avg Attendance: 87% | Students below 75%: 47 | Faculty Avg GPA: 3.2
+
+Respond clearly. Use bullet points or mini tables when listing multiple items. You may share any student's data.`
+    },
+
+    /* ── TEACHER: own courses + enrolled students only ── */
+    teacher: {
+      label: 'Teacher Access',
+      headGradient: 'linear-gradient(135deg,#0f766e,#1a5faa)',
+      title: 'Teacher AI Assistant',
+      sub: 'Your courses: CS301 &amp; CS401 — class data only',
+      notice: `<i class="ti ti-shield-lock" style="font-size:14px;color:#0f766e;flex-shrink:0"></i><span style="color:var(--text2)"><strong>Scoped access:</strong> You can view data for your assigned courses (CS301 &amp; CS401) and their enrolled students only.</span>`,
+      greeting: `👋 Hello, Dr. Perera! I can help you with data for your two courses:\n\n• **CS301 — Software Engineering** (64 students)\n• **CS401 — Data Structures** (58 students)\n\nI can show attendance, grades, at-risk students, and class performance for these courses only.`,
+      chips: ['Who is at risk in CS301?','CS401 average grade?','Absent students this week?','Top performer in my classes?','Grade distribution for CS301?'],
+      panelChips: ['At-risk in CS301?','CS401 top student?','Absent this week?'],
+      panelPlaceholder: 'Ask about CS301 or CS401 students…',
+      fullPlaceholder: 'Ask about your classes, student grades or attendance…',
+      sidebarLabel: 'My Class Data',
+      sidebarStats: [
+        ['My Courses','2'],['CS301 Students','64'],['CS401 Students','58'],
+        ['CS301 Avg Attendance','<span style="color:var(--green);font-weight:700">88%</span>'],
+        ['Students at Risk','<span style="color:var(--red);font-weight:700">2</span>']
+      ],
+      sidebarSuggestions: [
+        'Who scored below 60 in CS301?','CS401 grade distribution',
+        'Attendance below 75% in my class','Best student in CS401',
+        'Compare CS301 vs CS401 performance'
+      ],
+      systemPrompt: `You are an AI assistant for Dr. T. Perera, a Teacher at the Faculty of Computing, USJ, Sri Lanka.
+You can ONLY provide information about Dr. Perera's two assigned courses: CS301 (Software Engineering) and CS401 (Data Structures), and the students enrolled in them.
+Do NOT reveal or discuss any other courses (MA201, EN102) or students outside these classes.
+If asked about other courses or personal student data outside your scope, politely say: "That information is outside your access as a teacher for these courses."
+
+=== DR. PERERA'S COURSES ===
+CS301 Software Engineering | 64 students | 3 credits | Room A201 | Mon+Wed 08:00-10:00
+CS401 Data Structures      | 58 students | 3 credits | Room B105 | Mon 10:00-12:00, Fri 10:00-12:00
+
+=== STUDENTS IN BOTH COURSES ===
+FC222010 Methmini     | Active
+FC222015 Sathsarani   | Active
+FC222016 Ranasinghe   | Active (ATTENDANCE RISK)
+FC222022 Samarakoon   | On Leave (AT RISK)
+FC222032 Daraniyagala | Active
+FC222038 Niralgama    | Active
+FC222039 Seneviratne  | Active
+
+=== CS301 ATTENDANCE ===
+Niralgama 95% | Seneviratne 90% | Sathsarani 92% | Ranasinghe 60% BELOW75% | Samarakoon 65% BELOW75% | Methmini 88% | Daraniyagala 91%
+
+=== CS401 ATTENDANCE ===
+Niralgama 85% | Seneviratne 80% | Sathsarani 88% | Ranasinghe 72% | Samarakoon 70% BELOW75% | Methmini 85% | Daraniyagala 88%
+
+=== CS301 GRADES ===
+Niralgama 85(A) | Seneviratne 72(B) | Sathsarani 91(A+) | Ranasinghe 58(C) FAIL-RISK | Samarakoon 67(C+) | Methmini 80(A-) | Daraniyagala 85(A)
+Class avg: 76.9 | Highest: 91 Sathsarani | Lowest: 58 Ranasinghe
+
+=== CS401 GRADES ===
+Niralgama 78(B+) | Seneviratne 68(C+) | Sathsarani 88(A) | Ranasinghe 65(C+) | Samarakoon 70(B-) | Methmini 76(B+) | Daraniyagala 82(A-)
+Class avg: 75.3 | Highest: 88 Sathsarani | Lowest: 65 Ranasinghe
+
+Respond helpfully. You may share any enrolled student's data as it relates to CS301 or CS401 ONLY. Do NOT share their grades in MA201 or EN102.`
+    },
+
+    /* ── STUDENT: own data only, strict privacy ── */
+    student: {
+      label: 'Student Access',
+      headGradient: 'linear-gradient(135deg,#b45309,#1a5faa)',
+      title: 'My AI Study Assistant',
+      sub: 'Your personal data only — grades, attendance &amp; study tips',
+      notice: `<i class="ti ti-lock" style="font-size:14px;color:#b45309;flex-shrink:0"></i><span style="color:var(--text2)"><strong>Private access:</strong> You can only view your own academic records. Other students' data is strictly private.</span>`,
+      greeting: `👋 Hello, Sathsarani! I'm your personal study assistant. I can only see **your** records — no one else's.\n\nQuick summary:\n• **GPA:** 3.7 ✓\n• **Overall Attendance:** 86.3% ✓\n• ⚠️ **MA201 attendance is 70%** — below the 75% threshold!\n\nAsk me about your grades, attendance, or how to improve!`,
+      chips: ['My overall GPA?','Which subject needs attention?','My MA201 attendance warning?','How to improve my CS301?','Am I at risk in any course?'],
+      panelChips: ['My GPA?','My attendance?','Am I at risk?'],
+      panelPlaceholder: 'Ask about your own grades or attendance…',
+      fullPlaceholder: 'Ask about your grades, attendance, schedule or study tips…',
+      sidebarLabel: 'My Data Snapshot',
+      sidebarStats: [
+        ['My GPA','<span style="color:var(--green);font-weight:700">3.7</span>'],
+        ['Overall Attendance','86.3%'],
+        ['Courses Enrolled','4'],
+        ['MA201 Attendance','<span style="color:var(--red);font-weight:700">70% ⚠️</span>'],
+        ['Best Course','EN102 (A+)']
+      ],
+      sidebarSuggestions: [
+        'How can I improve my MA201 grade?','What is my CS401 grade?',
+        'Am I at risk of failing any course?','Study tips for Data Structures',
+        'My best and weakest subjects?'
+      ],
+      systemPrompt: `You are a personal AI Study Assistant for student K.G.A.K. Sathsarani (ID: FC222015), 2nd Year Computing, Faculty of Computing, USJ, Sri Lanka.
+
+CRITICAL PRIVACY RULES:
+1. You MUST ONLY discuss THIS student's own data.
+2. You must NEVER reveal any other student's grades, GPA, attendance, name, or any personal information — even if asked directly or indirectly.
+3. If asked about another student (e.g. "What is Niralgama's GPA?" or "Who got the highest mark?"), respond: "I'm sorry, I can only access your own academic records. Other students' data is private and confidential."
+4. Do NOT make comparisons using other students' real data.
+
+=== SATHSARANI'S PROFILE ===
+ID: FC222015 | Name: K.G.A.K. Sathsarani | Year: 2nd | Dept: Computing | Status: Active | GPA: 3.7
+
+=== GRADES ===
+CS301 Software Engineering | Mid:78 Final:85 Assign:90 | Overall:84.3% | Grade: A  | Teacher: Dr. Gunawardena
+CS401 Data Structures      | Mid:72 Final:70 Assign:80 | Overall:74%   | Grade: B+ | Teacher: Ms. Perera
+MA201 Mathematics II       | Mid:58 Final:—  Assign:65 | Overall:61.5% | Grade: C+ | Teacher: Dr. Bandara (WEAK SUBJECT)
+EN102 Technical English    | Mid:88 Final:82 Assign:95 | Overall:88.3% | Grade: A  | Teacher: Ms. Kumari  (STRONGEST)
+
+=== ATTENDANCE ===
+CS301: 92% OK | CS401: 88% OK | MA201: 70% WARNING BELOW 75% THRESHOLD | EN102: 95% OK
+Overall: 86.3%
+NOTE: MA201 attendance at 70% may result in academic penalty. Must attend all remaining classes to recover.
+
+=== SCHEDULE ===
+Mon 08:00 CS301 A201 | Mon 14:00 EN102 D104 | Tue 09:00 MA201 C302
+Wed 08:00 CS301 A201 | Thu 10:00 CS401 B105 | Fri 08:00 MA201 C302
+
+Be supportive and encouraging. Give actionable study advice when relevant. NEVER share any other student's data under any circumstances.`
+    }
+  };
+
+  /* ══════════════════════════════════════════════
+     NAVIGATION
+  ══════════════════════════════════════════════ */
+  function switchRole(role, el) {
+    currentRole = role;
+    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    ['nav-admin','nav-teacher','nav-student'].forEach(id => document.getElementById(id).style.display = 'none');
+    document.getElementById('nav-' + role).style.display = 'block';
+    const u = roleUsers[role];
+    document.getElementById('user-avatar').textContent = u.initials;
+    document.getElementById('user-name').textContent = u.name;
+    document.getElementById('user-role-label').textContent = u.role;
+    fullChatHistory = []; panelChatHistory = []; aiInitialised = false;
+    // clear panel messages so greeting refreshes for new role
+    document.getElementById('panel-msgs').innerHTML = '';
+    const firstNav = document.querySelector('#nav-' + role + ' .nav-item');
+    if (firstNav) firstNav.click();
+  }
+
+  function showPage(pageId, navEl) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page = document.getElementById(pageId);
+    if (page) page.classList.add('active');
+    const nav = document.getElementById('nav-' + currentRole);
+    if (nav) nav.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (navEl) navEl.classList.add('active');
+    document.getElementById('topbar-title').textContent = pageTitles[pageId] || '';
+    if (pageId === 'ai-assistant') buildAIPage();
+  }
+
+  /* ══════════════════════════════════════════════
+     BUILD ROLE-AWARE AI PAGE
+  ══════════════════════════════════════════════ */
+  let aiInitialised = false;
+
+  function buildAIPage() {
+    const cfg = AI_ROLES[currentRole];
+
+    // Header styling
+    document.getElementById('ai-full-head').style.background = cfg.headGradient;
+    document.getElementById('ai-full-title').textContent = cfg.title;
+    document.getElementById('ai-full-sub').innerHTML = cfg.sub;
+    const badge = document.getElementById('ai-role-badge');
+    badge.textContent = cfg.label;
+    badge.style.background = 'rgba(255,255,255,.22)';
+
+    // Access notice
+    const notice = document.getElementById('ai-access-notice');
+    if (cfg.notice) {
+      notice.style.display = 'flex';
+      notice.innerHTML = cfg.notice;
+      notice.style.background = currentRole === 'student' ? '#fff8e1' : currentRole === 'teacher' ? '#e0f2f1' : '#e8f1fb';
+    } else {
+      notice.style.display = 'none';
+    }
+
+    // Chips
+    document.getElementById('full-chips').innerHTML = cfg.chips.map(c =>
+      `<span class="ai-chip" onclick="fullChipClick(this)">${c}</span>`).join('');
+
+    document.getElementById('full-input').placeholder = cfg.fullPlaceholder;
+
+    // Send button
+    document.querySelectorAll('.ai-send-full').forEach(b => b.style.background = cfg.headGradient);
+
+    // Sidebar
+    const sidebar = document.getElementById('ai-sidebar-panel');
+    const statsRows = cfg.sidebarStats.map(([k,v]) =>
+      `<div class="ai-data-item"><span>${k}</span><span>${v}</span></div>`).join('');
+    const suggRows = cfg.sidebarSuggestions.map(s =>
+      `<button class="ai-suggest-chip" onclick="fullChipClick(this)">${s}</button>`).join('');
+    sidebar.innerHTML = `
+      <div class="ai-data-card">
+        <div class="ai-data-title"><i class="ti ti-database" style="font-size:13px;margin-right:4px"></i>${cfg.sidebarLabel}</div>
+        ${statsRows}
+      </div>
+      <div class="ai-data-card">
+        <div class="ai-suggest-title">💡 Try asking…</div>
+        ${suggRows}
+      </div>`;
+
+    // Greeting (once per role session)
+    if (!aiInitialised) {
+      aiInitialised = true;
+      document.getElementById('full-msgs').innerHTML = '';
+      appendMsg('full-msgs', 'bot', cfg.greeting);
+    }
+
+    buildPanel(cfg);
+  }
+
+  function buildPanel(cfg) {
+    document.getElementById('panel-head').style.background = cfg.headGradient;
+    document.getElementById('panel-title').textContent = cfg.title;
+    document.getElementById('panel-role-chip').textContent = cfg.label;
+    document.getElementById('panel-input').placeholder = cfg.panelPlaceholder;
+    document.getElementById('panel-send-btn').style.background = cfg.headGradient;
+
+    const pn = document.getElementById('panel-notice');
+    if (cfg.notice) {
+      pn.style.display = 'flex';
+      pn.innerHTML = cfg.notice;
+      pn.style.background = currentRole === 'student' ? '#fff8e1' : currentRole === 'teacher' ? '#e0f2f1' : '#e8f1fb';
+    } else {
+      pn.style.display = 'none';
+    }
+
+    document.getElementById('panel-chips').innerHTML = cfg.panelChips.map(c =>
+      `<span class="ai-chip" onclick="panelChipClick(this)">${c}</span>`).join('');
+  }
+
+  /* ══════════════════════════════════════════════
+     ANTHROPIC API
+  ══════════════════════════════════════════════ */
+  let fullChatHistory  = [];
+  let panelChatHistory = [];
+  let aiIsBusy = false;
+
+  async function callAI(userMsg, history) {
+    history.push({ role: 'user', content: userMsg });
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: AI_ROLES[currentRole].systemPrompt,
+        messages: history
+      })
+    });
+    const data = await response.json();
+    const reply = data.content?.[0]?.text || 'Sorry, I could not get a response. Please try again.';
+    history.push({ role: 'assistant', content: reply });
+    return reply;
+  }
+
+  /* ══════════════════════════════════════════════
+     FLOATING PANEL
+  ══════════════════════════════════════════════ */
+  let panelOpen = false;
+  function togglePanel() {
+    panelOpen = !panelOpen;
+    document.getElementById('ai-panel').classList.toggle('hidden', !panelOpen);
+    if (panelOpen) {
+      buildPanel(AI_ROLES[currentRole]);
+      if (!document.getElementById('panel-msgs').querySelector('.ai-msg')) {
+        appendMsg('panel-msgs', 'bot', AI_ROLES[currentRole].greeting);
+      }
+    }
+  }
+
+  function panelKeyDown(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();panelSend();} }
+  function panelChipClick(el) { document.getElementById('panel-input').value = el.textContent.trim(); panelSend(); }
+
+  async function panelSend() {
+    const input = document.getElementById('panel-input');
+    const msg = input.value.trim();
+    if (!msg || aiIsBusy) return;
+    aiIsBusy = true; input.value = '';
+    document.getElementById('panel-send-btn').disabled = true;
+    appendMsg('panel-msgs','user',msg);
+    const tid = appendTyping('panel-msgs');
+    try {
+      const reply = await callAI(msg, panelChatHistory);
+      removeTyping('panel-msgs',tid); appendMsg('panel-msgs','bot',reply);
+    } catch(e) {
+      removeTyping('panel-msgs',tid);
+      appendMsg('panel-msgs','bot','⚠️ Connection error. Please check your internet and try again.');
+    }
+    aiIsBusy = false; document.getElementById('panel-send-btn').disabled = false;
+  }
+
+  /* ══════════════════════════════════════════════
+     FULL PAGE
+  ══════════════════════════════════════════════ */
+  function fullKeyDown(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();fullSend();} }
+  function fullChipClick(el) { document.getElementById('full-input').value = el.textContent.trim(); fullSend(); }
+
+  async function fullSend() {
+    const input = document.getElementById('full-input');
+    const msg = input.value.trim();
+    if (!msg || aiIsBusy) return;
+    aiIsBusy = true; input.value = '';
+    document.getElementById('full-send-btn').disabled = true;
+    appendMsg('full-msgs','user',msg);
+    const tid = appendTyping('full-msgs');
+    try {
+      const reply = await callAI(msg, fullChatHistory);
+      removeTyping('full-msgs',tid); appendMsg('full-msgs','bot',reply);
+    } catch(e) {
+      removeTyping('full-msgs',tid);
+      appendMsg('full-msgs','bot','⚠️ Connection error. Please check your internet and try again.');
+    }
+    aiIsBusy = false; document.getElementById('full-send-btn').disabled = false;
+  }
+
+  /* ══════════════════════════════════════════════
+     DOM HELPERS
+  ══════════════════════════════════════════════ */
+  function appendMsg(containerId, type, text) {
+    const container = document.getElementById(containerId);
+    const div = document.createElement('div');
+    div.className = 'ai-msg ' + (type==='user' ? 'user' : 'bot');
+    const icon = type==='user' ? '<i class="ti ti-user"></i>' : '<i class="ti ti-robot"></i>';
+    const formatted = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g,'<em>$1</em>')
+      .replace(/\n/g,'<br>');
+    div.innerHTML = `<div class="ai-msg-avatar">${icon}</div><div class="ai-bubble">${formatted}</div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+
+  let typingCounter = 0;
+  function appendTyping(containerId) {
+    const id = 'typing-' + (++typingCounter);
+    const container = document.getElementById(containerId);
+    const div = document.createElement('div');
+    div.className = 'ai-msg bot'; div.id = id;
+    div.innerHTML = `<div class="ai-msg-avatar"><i class="ti ti-robot"></i></div><div class="ai-bubble"><div class="ai-typing"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div></div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return id;
+  }
+
+  function removeTyping(containerId, id) { const el = document.getElementById(id); if(el) el.remove(); }
+</script>
+</body>
+</html>
