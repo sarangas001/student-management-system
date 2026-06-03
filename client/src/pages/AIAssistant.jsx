@@ -1,5 +1,3 @@
-import React from 'react'
-
 const AIAssistant = () => {
   return (
     <div className="page" id="ai-assistant">
@@ -18,7 +16,7 @@ const AIAssistant = () => {
             </div>
 
             {/* <!-- Access notice banner (hidden for admin) --> */}
-            <div id="ai-access-notice" style={{"display": "none", "padding": "9px 16px", "fontSize": "12px", "display": "flex", "alignItems": "center", "gap": "8px", "borderBottom": "1px solid var(--border)"}}>
+            <div id="ai-access-notice" style={{"display": "none", "padding": "9px 16px", "fontSize": "12px", "alignItems": "center", "gap": "8px", "borderBottom": "1px solid var(--border)"}}>
               <i className="ti ti-shield-lock" style={{"fontSize": "15px", "flexShrink": "0"}}></i>
               <span id="ai-access-text"></span>
             </div>

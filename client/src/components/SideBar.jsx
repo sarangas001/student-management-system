@@ -1,5 +1,3 @@
-import React from 'react'
-
 export const SideBar = ({ switchRole, showPage, role, activePage }) => {
     return (
     //   <!-- SIDEBAR -->

@@ -1,7 +1,4 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+
 import AdminDashboard from './pages/Admin/AdminDashboard'
 import { TopBar } from './components/TopBar'
 import { SideBar } from './components/SideBar'
@@ -21,6 +18,7 @@ import StudentSchedule from './pages/student/StudentSchedule'
 import { Bot } from 'lucide-react'
 import AIFloatingPanel from './components/AIFloatingPanel'
 import AIAssistant from './pages/AIAssistant'
+import { useState } from 'react'
 
 function App() {
 
