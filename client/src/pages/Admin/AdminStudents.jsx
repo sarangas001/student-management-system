@@ -5,6 +5,7 @@ export const AdminStudents = () => {
   const [loading, setLoading] = useState(true);
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -77,9 +78,12 @@ export const AdminStudents = () => {
     return students.filter((student) => {
       const departmentMatch = selectedDepartment === '' || student.department === selectedDepartment;
       const yearMatch = selectedYear === '' || student.year === selectedYear;
-      return departmentMatch && yearMatch;
+      const searchMatch = !searchQuery || 
+        student.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return departmentMatch && yearMatch && searchMatch;
     });
-  }, [students, selectedDepartment, selectedYear]);
+  }, [students, selectedDepartment, selectedYear, searchQuery]);
 
   // Handlers
   const handleInputChange = (e) => {
@@ -150,7 +154,7 @@ export const AdminStudents = () => {
 
         {/* Search / Filter Bar */}
         <div className="search-wrap">
-          <input type="text" placeholder="Search by name or student ID..." />
+          <input type="text" placeholder="Search by name or student ID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           <select className='cursor-pointer' value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
             <option value="">All Departments</option>
             <option value="CS">CS</option>
