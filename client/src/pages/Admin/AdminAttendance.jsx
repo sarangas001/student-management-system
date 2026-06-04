@@ -48,7 +48,7 @@ const SL_HOLIDAYS = {
 };
 
 /** Fetch attendance summary statistics for a given month/year */
-const fetchAttendanceSummaryAPI = async (month, year) => {
+const fetchAttendanceSummaryAPI = async () => {
   return new Promise((resolve) => {
     setTimeout(() => {
       // Simulate sparse attendance records (only weekdays that aren't holidays)
