@@ -1,26 +1,9 @@
-import { useEffect, useState } from "react";
 import { AI_ROLES } from "../util/context";
 import { Lock, Shield } from "lucide-react";
 
 const AIAssistant = ({role}) => {
 
   const cfg = AI_ROLES[role];
-
-  const  appendMsg = (containerId, type, text) =>  {
-    const container = document.getElementById(containerId);
-    const div = document.createElement('div');
-    div.className = 'ai-msg ' + (type==='user' ? 'user' : 'bot');
-    const icon = type==='user' ? '<i class="ti ti-user"></i>' : '<i class="ti ti-robot"></i>';
-    const formatted = text
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g,'<em>$1</em>')
-      .replace(/\n/g,'<br>');
-    div.innerHTML = `<div class="ai-msg-avatar">${icon}</div><div class="ai-bubble">${formatted}</div>`;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
-    return div;
-  }
 
 
   return (
@@ -67,7 +50,7 @@ const AIAssistant = ({role}) => {
 
             {/* <!-- Suggested chips — populated by JS --> */}
             <div className="ai-chips" id="full-chips">
-              { cfg.chips.map((c, key) => <span key={key} className="ai-chip" onClick={() => fullChipClick(c)}>{c}</span>)}
+              { cfg.chips.map((c, key) => <span key={key} className="ai-chip" >{c}</span>)}
             </div>
 
             <div className={`ai-full-input `}>
@@ -87,7 +70,7 @@ const AIAssistant = ({role}) => {
             <div className="ai-data-card">
               <div className="ai-suggest-title">💡 Try asking…</div>
               {cfg.sidebarSuggestions.map((suggestion, key) => (
-                <button key={key} className="ai-suggest-chip" onClick={() => fullChipClick(suggestion)}>
+                <button key={key} className="ai-suggest-chip" >
                   {suggestion}
                 </button>
               ))}
