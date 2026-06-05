@@ -39,9 +39,7 @@ function App() {
       <div className="layout">
         <SideBar role={role} activePage={activePage} switchRole={(data) => switchRole(data)} showPage={(data) => showPage(data)} />
         <div className="main">
-          {
-            activePage !== 'ai-assistant' && <TopBar pageTitle={activePage.split('-')[1].charAt(0).toUpperCase() + activePage.split('-')[1].slice(1)} />
-          }
+          <TopBar pageTitle={activePage.split('-')[1].charAt(0).toUpperCase() + activePage.split('-')[1].slice(1)} />
           
           <div className="content-area">
             {/* Admin Pages */}
@@ -64,7 +62,7 @@ function App() {
             {role === 'student' && activePage === 'student-grades' && <StudentGrades />}
             {role === 'student' && activePage === 'student-schedule' && <StudentSchedule />}
 
-            {activePage === 'ai-assistant' && <AIAssistant />}
+            {activePage === 'ai-assistant' && <AIAssistant role={role} />}
           </div>
         </div>
       </div >

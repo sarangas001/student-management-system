@@ -499,7 +499,6 @@
   }
   .ai-full-head {
     padding: 16px 20px;
-    background: linear-gradient(135deg,#7c3aed,#1a5faa);
     color: #fff;
     display: flex; align-items: center; gap: 12px;
     flex-shrink: 0;
@@ -538,7 +537,6 @@
   .ai-full-input textarea:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
   .ai-send-full {
     padding: 10px 20px;
-    background: linear-gradient(135deg,#7c3aed,#1a5faa);
     color: #fff;
     border: none;
     border-radius: var(--radius);
