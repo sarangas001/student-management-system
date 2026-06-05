@@ -1,4 +1,4 @@
-import { Delete, Edit, Trash2 } from 'lucide-react';
+import {Edit, Trash2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
 export const AdminStudents = () => {
