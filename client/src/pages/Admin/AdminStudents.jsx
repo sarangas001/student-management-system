@@ -1,3 +1,4 @@
+import {Edit, Trash2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 
 export const AdminStudents = () => {
@@ -205,12 +206,12 @@ export const AdminStudents = () => {
                       {student.status}
                     </span>
                   </td>
-                  <td>
+                  <td className='flex gap-2 items-center'>
                     <button className="btn btn-sm cursor-pointer" onClick={() => handleEditStudent(student.id)}>
-                      Edit
+                      <Edit className='w-4 h-4 text-blue-500' />
                     </button>
                     <button className="btn btn-sm cursor-pointer" onClick={() => handleDeleteStudent(student.id)}>
-                      Delete
+                      <Trash2 className='w-4 h-4 text-red-500' />
                     </button>
                   </td>
                 </tr>

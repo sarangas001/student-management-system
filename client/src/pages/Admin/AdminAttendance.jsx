@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // ─── API Functions ────────────────────────────────────────────────────────────
 
@@ -278,14 +279,14 @@ export const AdminAttendance = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button className="btn btn-sm cursor-pointer" onClick={goToPrevMonth}
               style={{ padding: '4px 8px', lineHeight: 1 }}>
-              <i className="ti ti-chevron-left" />
+              <ChevronLeft className='w-5 h-5' />
             </button>
             <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', minWidth: '110px', textAlign: 'center' }}>
               {MONTH_NAMES[calMonth - 1]} {calYear}
             </span>
             <button className="btn btn-sm cursor-pointer" onClick={goToNextMonth}
               style={{ padding: '4px 8px', lineHeight: 1 }}>
-              <i className="ti ti-chevron-right" />
+              <ChevronRight className='w-5 h-5' />
             </button>
           </div>
         </div>
