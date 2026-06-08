@@ -4,7 +4,6 @@
 
 Each team member has been assigned **two UI pages** to develop based on the provided design mockups. Please ensure that your implementation matches the assigned UI image as closely as possible while maintaining responsiveness, code quality, and project standards.
 
----
 
 ## 👨‍💻 Ravindu
 
