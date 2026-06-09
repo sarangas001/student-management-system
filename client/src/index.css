@@ -641,4 +641,30 @@
   border-left: 4px solid #f59e0b;
   font-size: 14px;
 }
+.attendance-badge {
+  display: inline-block;
+  min-width: 45px;
+  text-align: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
 
+
+.green {
+  background-color: #dff6dd;
+  color: #2e7d32;
+}
+
+
+.light-green {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+
+.yellow {
+  background-color: #fff3cd;
+  color: #856404;
+}
