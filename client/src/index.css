@@ -631,3 +631,14 @@
     .two-col { grid-template-columns: 1fr; }
     .sidebar { width: 180px; min-width: 180px; }
   }
+
+  .warning-box {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 8px;
+  background-color: #fef3c7;
+  color: #92400e;
+  border-left: 4px solid #f59e0b;
+  font-size: 14px;
+}
+
