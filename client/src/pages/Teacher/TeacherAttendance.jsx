@@ -165,7 +165,7 @@ const TeacherAttendance = () => {
         </div>
 
       </div>{/* end white card */}
-    </div>  /* end outer grey wrapper */
+    </div>  {/* end outer grey wrapper */}
   )
 }
 
