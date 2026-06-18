@@ -16,10 +16,16 @@ echo "❌ client directory not found!"
 exit 1
 fi
 
-# Ask Mongo URI
-
 echo ""
-read -p "Enter MongoDB URI: " MONGO_URI
+read -p "Enter MongoDB Cluster URI: " MONGO_URI
+
+# Remove trailing slash if exists
+
+MONGO_URI=${MONGO_URI%/}
+
+# Append database name
+
+MONGO_URI="${MONGO_URI}/student-management"
 
 # Create Server ENV
 
@@ -38,12 +44,5 @@ EOF
 echo ""
 echo "✅ Environment files created successfully!"
 echo ""
-echo "Server ENV:"
-cat server/.env
-
-echo ""
-echo "Client ENV:"
-cat client/.env
-
-echo ""
+echo "MongoDB Database: student-management"
 echo "🎉 Setup completed!"
