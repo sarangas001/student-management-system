@@ -1,4 +1,6 @@
 
+  @import "tailwindcss";
+  
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -497,7 +499,6 @@
   }
   .ai-full-head {
     padding: 16px 20px;
-    background: linear-gradient(135deg,#7c3aed,#1a5faa);
     color: #fff;
     display: flex; align-items: center; gap: 12px;
     flex-shrink: 0;
@@ -536,7 +537,6 @@
   .ai-full-input textarea:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.1); }
   .ai-send-full {
     padding: 10px 20px;
-    background: linear-gradient(135deg,#7c3aed,#1a5faa);
     color: #fff;
     border: none;
     border-radius: var(--radius);
@@ -631,3 +631,40 @@
     .two-col { grid-template-columns: 1fr; }
     .sidebar { width: 180px; min-width: 180px; }
   }
+
+  .warning-box {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 8px;
+  background-color: #fef3c7;
+  color: #92400e;
+  border-left: 4px solid #f59e0b;
+  font-size: 14px;
+}
+.attendance-badge {
+  display: inline-block;
+  min-width: 45px;
+  text-align: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+
+.green {
+  background-color: #dff6dd;
+  color: #2e7d32;
+}
+
+
+.light-green {
+  background-color: #e8f5e9;
+  color: #388e3c;
+}
+
+
+.yellow {
+  background-color: #fff3cd;
+  color: #856404;
+}
