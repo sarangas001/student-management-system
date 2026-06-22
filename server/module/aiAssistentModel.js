@@ -13,4 +13,5 @@ const aiAssistentSchema = new mongoose.Schema({
   sessionStartedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
-module.exports = mongoose.model('AIAssistent', aiAssistentSchema);
+const AIAssistent = mongoose.model('AIAssistent', aiAssistentSchema);
+module.exports = AIAssistent;

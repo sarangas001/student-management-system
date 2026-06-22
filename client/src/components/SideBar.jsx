@@ -1,4 +1,4 @@
-export const SideBar = ({ switchRole, showPage, role, activePage }) => {
+export const SideBar = ({ role, activePage, showPage }) => {
     return (
     //   <!-- SIDEBAR -->
     <div className="sidebar">
@@ -7,18 +7,12 @@ export const SideBar = ({ switchRole, showPage, role, activePage }) => {
         <div className="logo-sub">Student Management System · USJ</div>
         </div>
 
-        <div className="role-tabs">
-        <button className={`role-tab ${role === 'admin' ? 'active' : ''}`} onClick={() => switchRole('admin')}>Admin</button>
-        <button className={`role-tab ${role === 'teacher' ? 'active' : ''}`} onClick={() => switchRole('teacher')}>Teacher</button>
-        <button className={`role-tab ${role === 'student' ? 'active' : ''}`} onClick={() => switchRole('student')}>Student</button>
-        </div>
-
     {/* <!-- Admin Nav --> */}
     { role === 'admin' && (
         <div id="nav-admin">
             <div className="nav-section">Main</div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-dashboard') ? 'active' : ''} `} onClick={() => showPage('admin-dashboard')}>
-                <i className="ti ti-layout-dashboard"></i>Dashboard
+                <i className="ti ti-layout-dashboard"></i> Dashboard
             </div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-students') ? 'active' : ''} `} onClick={() => showPage('admin-students')}>
                 <i className="ti ti-users"></i>Students

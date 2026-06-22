@@ -19,27 +19,37 @@ import { Bot } from 'lucide-react'
 import AIFloatingPanel from './components/AIFloatingPanel'
 import AIAssistant from './pages/AIAssistant'
 import { useState } from 'react'
+import Login from './pages/Login'
+import { useAppContext } from './context/useAppContext'
 
 function App() {
+    const { isLoggedIn, role} = useAppContext();
+    const [activePage, setActivePage] = useState(role ? `${role}-dashboard` : 'null-dashboard');
+    const [prevRole, setPrevRole] = useState(role);
 
-  const [role, setRole] = useState('admin');
-  const [activePage, setActivePage] = useState('admin-dashboard');
+    if (role !== prevRole) {
+        setPrevRole(role);
+        if (role && activePage === 'null-dashboard') {
+            setActivePage(`${role}-dashboard`);
+        }
+    }
 
-  const switchRole = (newRole) => {
-    setActivePage(newRole === 'admin' ? 'admin-dashboard' : newRole === 'teacher' ? 'teacher-dashboard' : 'student-dashboard');
-    setRole(newRole);
+    const showPage = (page) => {
+        setActivePage(page);
+    }
+
+  if (!isLoggedIn) {
+    return <Login />
   }
 
-  const showPage = (page) => {
-    setActivePage(page);
-  }
+  
 
   return (
     <>
       <div className="layout">
-        <SideBar role={role} activePage={activePage} switchRole={(data) => switchRole(data)} showPage={(data) => showPage(data)} />
+        <SideBar role={role} activePage={activePage} showPage={(data) => showPage(data)} />
         <div className="main">
-          <TopBar pageTitle={activePage.split('-')[1].charAt(0).toUpperCase() + activePage.split('-')[1].slice(1)} />
+          <TopBar role={role} pageTitle={activePage.split('-').map(s => s[0].toUpperCase() + s.slice(1)).join(' ')} />
           
           <div className="content-area">
             {/* Admin Pages */}

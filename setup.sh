@@ -17,22 +17,24 @@ exit 1
 fi
 
 echo ""
-read -p "Enter MongoDB Cluster URI: " MONGO_URI
+# read -p "Enter MongoDB Cluster URI: " MONGO_URI
 
-# Remove trailing slash if exists
+# # Remove trailing slash if exists
 
-MONGO_URI=${MONGO_URI%/}
+# MONGO_URI=${MONGO_URI%/}
 
-# Append database name
+# # Append database name
 
-MONGO_URI="${MONGO_URI}/student-management"
+# MONGO_URI="${MONGO_URI}/student-management"
 
 # Create Server ENV
 
 cat > server/.env << EOF
 PORT=3001
-CLIENT_URL=http://localhost:5173
-MONGO_URI=$MONGO_URI
+VITE_BACKEND_URL=http://localhost:5173
+NODE_ENV=development
+JWT_SECRET=secretkey
+MONGO_URI=mongodb+srv://saranga:saranga@cluster0.u9gdwrb.mongodb.net/student-management
 EOF
 
 # Create Client ENV

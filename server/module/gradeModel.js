@@ -10,4 +10,5 @@ const gradeSchema = new mongoose.Schema({
   published: { type: Boolean, default: false }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Grade', gradeSchema);
+const Grade = mongoose.model('Grade', gradeSchema);
+module.exports = Grade;

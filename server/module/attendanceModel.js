@@ -9,4 +9,5 @@ const attendanceSchema = new mongoose.Schema({
   markerModel: { type: String, required: true, enum: ['Teacher', 'Admin'] }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Attendance', attendanceSchema);
+const Attendance = mongoose.model('Attendance', attendanceSchema);
+module.exports = Attendance;
