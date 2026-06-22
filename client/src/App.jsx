@@ -18,19 +18,21 @@ import StudentSchedule from './pages/student/StudentSchedule'
 import { Bot } from 'lucide-react'
 import AIFloatingPanel from './components/AIFloatingPanel'
 import AIAssistant from './pages/AIAssistant'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Login from './pages/Login'
 import { useAppContext } from './context/useAppContext'
 
 function App() {
     const { isLoggedIn, role} = useAppContext();
     const [activePage, setActivePage] = useState(role ? `${role}-dashboard` : 'null-dashboard');
+    const [prevRole, setPrevRole] = useState(role);
 
-    useEffect(() => {
+    if (role !== prevRole) {
+        setPrevRole(role);
         if (role && activePage === 'null-dashboard') {
             setActivePage(`${role}-dashboard`);
         }
-    }, [role, activePage]);
+    }
 
     const showPage = (page) => {
         setActivePage(page);

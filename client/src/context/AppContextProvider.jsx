@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { AppContext } from "./AppContext";
 import axios from "axios";
 
@@ -9,7 +9,7 @@ export const AppContextProvider = ({ children }) => {
     const [role, setRole] = useState(null);
     const [user, setUser] = useState(null);
 
-    const checkLogin = async () => {
+    const checkLogin = useCallback(async () => {
             try {
                 const { data } = await axios.get(
                     `${backendUrl}/api/auth/isLoggedIn`,
@@ -22,13 +22,14 @@ export const AppContextProvider = ({ children }) => {
             } catch (error) {
                 console.error(error);
             }
-    };
+    }, [backendUrl]);
 
     useEffect(() => {
-        
-
-        checkLogin();
-    }, [backendUrl]);
+        const initLogin = async () => {
+            await checkLogin();
+        };
+        initLogin();
+    }, [checkLogin]);
 
     return (
         <AppContext.Provider

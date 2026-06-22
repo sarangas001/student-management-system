@@ -27,8 +27,6 @@ const register = async (req, res) => {
 
             const newAdmin = new Admin({adminId, firstName, lastName, email, password: hashedPassword});
 
-            console.log('New Admin:', newAdmin);
-
             const savedAdmin = await newAdmin.save();
 
             const token = jwtService.generateToken(savedAdmin._id, 'admin');
