@@ -7,8 +7,8 @@ const generateToken = (user_id, role) => {
 const saveToken = ({res, token}) => {
     res.cookie('token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        secure: true,
+        sameSite: 'strict',
         maxAge: 24 * 60 * 60 * 1000 // 1 day
     });
 }
@@ -16,8 +16,8 @@ const saveToken = ({res, token}) => {
 const clearToken = (res) => {
     res.clearCookie('token', {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict'
+        secure: true,
+        sameSite: 'strict'
     });
 }
 
