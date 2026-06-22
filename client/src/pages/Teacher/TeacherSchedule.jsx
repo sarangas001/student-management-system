@@ -1,6 +1,3 @@
-
-import React from "react";
-
 const TeacherSchedule = () => {
   return (
     <div className="page active" id="teacher-schedule">
