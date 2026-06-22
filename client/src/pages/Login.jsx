@@ -1,19 +1,18 @@
-import { useContext, useState } from 'react';
+import { useState } from 'react';
 import { LogIn, User, Lock, BookOpen } from 'lucide-react';
 import axios from 'axios';
-import { AppContext } from '../context/AppContext';
+import { useAppContext } from '../context/useAppContext';
 
-export default function Login({ onLogin }) {
+export default function Login() {
+  const { backendUrl, checkLogin, setIsLoggedIn } = useAppContext();
+
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const context = useContext(AppContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { backendUrl, isLoggedInCheck,setIsLoggedIn, setRole, setUser } = context;
-    
     try {
       axios.defaults.withCredentials = true;
 
@@ -21,7 +20,7 @@ export default function Login({ onLogin }) {
       
       if (data.success) {
         setIsLoggedIn(true);
-        isLoggedInCheck();
+        checkLogin();
         
       }
 

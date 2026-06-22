@@ -1,4 +1,4 @@
-export const SideBar = ({ switchRole, role, activePage, showPage }) => {
+export const SideBar = ({ role, activePage, showPage }) => {
     return (
     //   <!-- SIDEBAR -->
     <div className="sidebar">

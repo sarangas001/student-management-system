@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import Login from './pages/Login.jsx'
-import { AppContextProvider } from './context/AppContext.jsx'
+import { AppContextProvider } from './context/AppContextProvider.jsx'
 
 createRoot(document.getElementById('root')).render(
   <BrowserRouter>

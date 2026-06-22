@@ -1,7 +1,7 @@
 import axios from "axios"
 import { BellIcon } from "lucide-react"
 
-export const TopBar = ({ pageTitle, role }) => {
+export const TopBar = ({ pageTitle}) => {
 
   const handleLogout = async () => {
     try {
