@@ -36,6 +36,12 @@ const teacherDashboardRoutes = require('./routes/teacherDashboardRoutes');
 const teacherGradesRoutes = require('./routes/teacherGradesRoutes');
 const teacherScheduleRoutes = require('./routes/teacherScheduleRoutes');
 
+// Auth routes
+const authRoutes = require('./routes/auth.routes');
+
+app.use('/api/auth', authRoutes);
+
+
 // Connect routes
 app.use('/api/students', studentRoutes);
 app.use('/api/admins', adminRoutes);

@@ -32,6 +32,8 @@ MONGO_URI="${MONGO_URI}/student-management"
 cat > server/.env << EOF
 PORT=3001
 CLIENT_URL=http://localhost:5173
+NODE_ENV=development
+JWT_SECRET=secretkey
 MONGO_URI=$MONGO_URI
 EOF
 

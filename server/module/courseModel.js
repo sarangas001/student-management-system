@@ -9,4 +9,5 @@ const courseSchema = new mongoose.Schema({
   department: { type: String, required: true }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Course', courseSchema);
+const Course = mongoose.model('Course', courseSchema);
+module.exports = Course;

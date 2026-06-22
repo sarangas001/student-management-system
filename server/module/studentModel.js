@@ -11,4 +11,5 @@ const studentSchema = new mongoose.Schema({
   enrolledCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }]
 }, { timestamps: true });
 
-module.exports = mongoose.model('Student', studentSchema);
+const Student = mongoose.model('Student', studentSchema);
+module.exports = Student;
