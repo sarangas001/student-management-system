@@ -1,4 +1,4 @@
-const { generateToken, saveToken, clearToken } = require("./jwt.repo");
+const { generateToken, saveToken, clearToken, decodeToken } = require("./jwt.repo");
 
 class JWTService {
     generateToken(payload) {
@@ -11,6 +11,10 @@ class JWTService {
 
     clearToken(res) {
         return clearToken(res);
+    }
+
+    decodeToken(token) {
+        return decodeToken(token);
     }
 }
 

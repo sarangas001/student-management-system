@@ -18,18 +18,26 @@ import StudentSchedule from './pages/student/StudentSchedule'
 import { Bot } from 'lucide-react'
 import AIFloatingPanel from './components/AIFloatingPanel'
 import AIAssistant from './pages/AIAssistant'
-import { useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import Login from './pages/Login'
+import { AppContext } from './context/AppContext'
 
 function App() {
+  
+    const context = useContext(AppContext);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState('admin');
-  const [activePage, setActivePage] = useState('admin-dashboard');
+    const { isLoggedIn, role, isLoggedInCheck } = context;
+    const [activePage, setActivePage] = useState(`${role}-dashboard`);
 
-  const showPage = (page) => {
-    setActivePage(page);
-  }
+    const showPage = (page) => {
+        setActivePage(page);
+    }
+    console.log(role)
+
+    useEffect(() => {
+      setActivePage(`${role}-dashboard`);
+    }
+       ,[role])
 
   if (!isLoggedIn) {
     return <Login />
@@ -40,7 +48,7 @@ function App() {
       <div className="layout">
         <SideBar role={role} activePage={activePage} showPage={(data) => showPage(data)} />
         <div className="main">
-          <TopBar pageTitle={activePage.split('-')[1].charAt(0).toUpperCase() + activePage.split('-')[1].slice(1)} />
+          <TopBar role={role} pageTitle={activePage.split('-').map(s => s[0].toUpperCase() + s.slice(1)).join(' ')} />
           
           <div className="content-area">
             {/* Admin Pages */}

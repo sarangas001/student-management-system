@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-const generateToken = (user_id) => {
-    return jwt.sign({ user_id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+const generateToken = (user_id, role) => {
+    return jwt.sign({ id: user_id, role }, process.env.JWT_SECRET, { expiresIn: '1d' });
 }
 
 const saveToken = ({res, token}) => {
@@ -21,8 +21,17 @@ const clearToken = (res) => {
     });
 }
 
+const decodeToken = (token) => {
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+        throw new Error('Invalid token');
+    }
+}
+
 module.exports = {
     generateToken,
     saveToken,
-    clearToken
+    clearToken,
+    decodeToken
 };

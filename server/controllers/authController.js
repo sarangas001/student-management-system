@@ -31,7 +31,7 @@ const register = async (req, res) => {
 
             const savedAdmin = await newAdmin.save();
 
-            const token = jwtService.generateToken(savedAdmin._id);
+            const token = jwtService.generateToken(savedAdmin._id, 'admin');
 
             jwtService.saveToken({res, token});
         
@@ -54,7 +54,7 @@ const register = async (req, res) => {
 
             const savedStudent = await newStudent.save();
 
-            const token = jwtService.generateToken(savedStudent._id);
+            const token = jwtService.generateToken(savedStudent._id, 'student');
 
             jwtService.saveToken({res, token});
         } else if (role == 'teacher') {
@@ -77,7 +77,7 @@ const register = async (req, res) => {
 
             const savedTeacher = await newTeacher.save();
 
-            const token = jwtService.generateToken(savedTeacher._id);
+            const token = jwtService.generateToken(savedTeacher._id, 'teacher');
 
             jwtService.saveToken({res, token});
         }else {
@@ -115,8 +115,9 @@ const login = async (req, res) => {
                 return res.json({success: false, message: 'Invalid password'});
             }
 
-            const token = jwtService.generateToken(admin._id);
+            const token = jwtService.generateToken(admin._id, 'admin');
             jwtService.saveToken({res, token});
+            console.log('Admin logged in:', admin);
 
         } else if (role == 'student') {
             const student = await Student.findOne({email});
@@ -127,7 +128,7 @@ const login = async (req, res) => {
             if (!isPasswordValid) {
                 return res.json({success: false, message: 'Invalid password'});
             }
-            const token = jwtService.generateToken(student._id);
+            const token = jwtService.generateToken(student._id, 'student');
             jwtService.saveToken({res, token});
         } else if (role == 'teacher') {
             const teacher = await Teacher.findOne({email});
@@ -138,7 +139,7 @@ const login = async (req, res) => {
             if (!isPasswordValid) {
                 return res.json({success: false, message: 'Invalid password'});
             }
-            const token = jwtService.generateToken(teacher._id);
+            const token = jwtService.generateToken(teacher._id, 'teacher');
             jwtService.saveToken({res, token});
         }
 
@@ -158,8 +159,42 @@ const logout = async (req, res) => {
     }
 }
 
+const isLoggedIn = async (req, res) => {
+    try {
+        const {token} = req.cookies;
+
+        
+
+        if (!token) {
+            return res.json({success: false, message: 'User not logged in'});
+        }
+        
+        const decoded = await jwtService.decodeToken(token);
+        
+
+        if (!decoded) {
+            return res.json({success: false, message: 'Invalid token'});
+        }
+        let user;
+        const role = await Admin.findById(decoded.id) ? 'admin' : await Student.findById(decoded.id) ? 'student' : await Teacher.findById(decoded.id) ? 'teacher' : null;
+        if(role === 'student') {
+            user = await Student.findById(decoded.id);
+        }else if(role === 'teacher') {
+            user = await Teacher.findById(decoded.id);
+        }else if(role === 'admin') {
+            user = await Admin.findById(decoded.id);
+        }
+
+        return res.json({success: true, message: 'User is logged in', role: role, user});
+
+    }catch (error) {
+        return res.json({success: false, message: error.message});
+    }
+}   
+
 module.exports = {
     register,
     login,
-    logout
+    logout,
+    isLoggedIn
 }

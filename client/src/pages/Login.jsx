@@ -1,15 +1,34 @@
-import React, { useState } from 'react';
+import { useContext, useState } from 'react';
 import { LogIn, User, Lock, BookOpen } from 'lucide-react';
+import axios from 'axios';
+import { AppContext } from '../context/AppContext';
 
 export default function Login({ onLogin }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e) => {
+  const context = useContext(AppContext);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (username && password) {
-      onLogin(role);
+
+    const { backendUrl, isLoggedInCheck,setIsLoggedIn, setRole, setUser } = context;
+    
+    try {
+      axios.defaults.withCredentials = true;
+
+      const {data} = await axios.post( backendUrl +'/api/auth/login', { email, password });
+      
+      if (data.success) {
+        setIsLoggedIn(true);
+        isLoggedInCheck();
+        
+      }
+
+    }catch (error) {
+      console.error('Login failed:', error);
     }
+
   };
 
   return (
@@ -31,9 +50,9 @@ export default function Login({ onLogin }) {
               <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
               <input 
                 type="text" 
-                placeholder="Enter your username" 
-                value={username} 
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username or email" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 style={{ width: '100%', paddingLeft: '38px' }}
               />
