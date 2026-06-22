@@ -85,7 +85,8 @@ const register = async (req, res) => {
         return res.json({success: true, message: 'User registered successfully'});
 
     }catch (error) {
-        return res.json({success: false, message: error.message});
+        console.error('isLoggedIn error:', error.message);
+        return res.status(500).json({success: false, message: 'Session check failed.'});
     }
 }
 
@@ -144,7 +145,8 @@ const login = async (req, res) => {
         return res.json({success: true, message: 'User logged in successfully'});
 
     }catch (error) {
-        return res.json({success: false, message: error.message});
+        console.error('Login error:', error.message);
+        return res.status(500).json({success: false, message: 'Login failed. Please try again.'});
     }
 }
 
@@ -153,7 +155,7 @@ const logout = async (req, res) => {
         jwtService.clearToken(res);
         return res.json({success: true, message: 'User logged out successfully'});
     } catch (error) {
-        return res.json({success: false, message: error.message});
+        return res.status(500).json({success: false, message: 'Logout failed.'});
     }
 }
 
@@ -186,9 +188,10 @@ const isLoggedIn = async (req, res) => {
         return res.json({success: true, message: 'User is logged in', role: role, user});
 
     }catch (error) {
-        return res.json({success: false, message: error.message});
+        console.error('Register error:', error.message);
+        return res.status(500).json({success: false, message: 'Registration failed. Please try again.'});
     }
-}   
+}
 
 module.exports = {
     register,

@@ -27,15 +27,15 @@ echo ""
 
 # MONGO_URI="${MONGO_URI}/student-management"
 
-# Create Server ENV
+# Create Server ENV from .env.example
 
-cat > server/.env << EOF
-PORT=3001
-VITE_BACKEND_URL=http://localhost:5173
-NODE_ENV=development
-JWT_SECRET=secretkey
-MONGO_URI=mongodb+srv://saranga:saranga@cluster0.u9gdwrb.mongodb.net/student-management
-EOF
+if [ -f "server/.env.example" ]; then
+    cp server/.env.example server/.env
+    echo "⚠️  Please edit server/.env with your actual credentials"
+else
+    echo "❌ server/.env.example not found!"
+    exit 1
+fi
 
 # Create Client ENV
 

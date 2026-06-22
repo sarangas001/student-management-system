@@ -12,15 +12,32 @@ spec:
       labels:
         app: student-backend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: student-backend
         image: sarangasl/student-management-backend:latest
         imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         env:
         - name: PORT
           value: "3001"
         ports:
         - containerPort: 3001
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
 ---
 apiVersion: v1
 kind: Service
@@ -33,4 +50,4 @@ spec:
   ports:
     -  port: 3001
        targetPort: 3001
-       nodePort: 32000
+       nodePort: 32001

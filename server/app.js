@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
 const HOSTNAME = process.env.HOSTNAME || require('os').hostname();
 
 require('dotenv').config();
@@ -8,10 +9,17 @@ require('dotenv').config();
 const allowedOrigin = process.env.CLIENT_URL;
 
 const app = express();
+
+app.use(helmet());
 app.use(cors({origin: [allowedOrigin],credentials:true, methods: ['GET', 'POST', 'PUT', 'DELETE'],allowedHeaders: ['Content-Type', 'Authorization']}));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(cookieParser());
+
+const authMiddleware = require('./middleware/authMiddleware');
+const roleMiddleware = require('./middleware/roleMiddleware');
+const { generalLimiter } = require('./middleware/rateLimiter');
+app.use(generalLimiter);
 
 // Import routes
 const studentRoutes = require('./routes/studentRoutes');
@@ -38,32 +46,30 @@ const teacherScheduleRoutes = require('./routes/teacherScheduleRoutes');
 
 // Auth routes
 const authRoutes = require('./routes/auth.routes');
-
 app.use('/api/auth', authRoutes);
 
+// Protected routes - require authentication
+app.use('/api/students', authMiddleware, studentRoutes);
+app.use('/api/admins', authMiddleware, roleMiddleware('admin'), adminRoutes);
+app.use('/api/teachers', authMiddleware, teacherRoutes);
+app.use('/api/ai-assistent', authMiddleware, aiAssistentRoutes);
 
-// Connect routes
-app.use('/api/students', studentRoutes);
-app.use('/api/admins', adminRoutes);
-app.use('/api/teachers', teacherRoutes);
-app.use('/api/ai-assistent', aiAssistentRoutes);
+app.use('/api/admin/attendance', authMiddleware, roleMiddleware('admin'), adminAttendanceRoutes);
+app.use('/api/admin/courses', authMiddleware, roleMiddleware('admin'), adminCoursesRoutes);
+app.use('/api/admin/dashboard', authMiddleware, roleMiddleware('admin'), adminDashboardRoutes);
+app.use('/api/admin/grades', authMiddleware, roleMiddleware('admin'), adminGradesRoutes);
+app.use('/api/admin/reports', authMiddleware, roleMiddleware('admin'), adminReportsRoutes);
+app.use('/api/admin/students', authMiddleware, roleMiddleware('admin'), adminStudentsRoutes);
 
-app.use('/api/admin/attendance', adminAttendanceRoutes);
-app.use('/api/admin/courses', adminCoursesRoutes);
-app.use('/api/admin/dashboard', adminDashboardRoutes);
-app.use('/api/admin/grades', adminGradesRoutes);
-app.use('/api/admin/reports', adminReportsRoutes);
-app.use('/api/admin/students', adminStudentsRoutes);
+app.use('/api/student/attendance', authMiddleware, roleMiddleware('student'), studentAttendanceRoutes);
+app.use('/api/student/dashboard', authMiddleware, roleMiddleware('student'), studentDashboardRoutes);
+app.use('/api/student/grades', authMiddleware, roleMiddleware('student'), studentGradesRoutes);
+app.use('/api/student/schedule', authMiddleware, roleMiddleware('student'), studentScheduleRoutes);
 
-app.use('/api/student/attendance', studentAttendanceRoutes);
-app.use('/api/student/dashboard', studentDashboardRoutes);
-app.use('/api/student/grades', studentGradesRoutes);
-app.use('/api/student/schedule', studentScheduleRoutes);
-
-app.use('/api/teacher/attendance', teacherAttendanceRoutes);
-app.use('/api/teacher/dashboard', teacherDashboardRoutes);
-app.use('/api/teacher/grades', teacherGradesRoutes);
-app.use('/api/teacher/schedule', teacherScheduleRoutes);
+app.use('/api/teacher/attendance', authMiddleware, roleMiddleware('teacher'), teacherAttendanceRoutes);
+app.use('/api/teacher/dashboard', authMiddleware, roleMiddleware('teacher'), teacherDashboardRoutes);
+app.use('/api/teacher/grades', authMiddleware, roleMiddleware('teacher'), teacherGradesRoutes);
+app.use('/api/teacher/schedule', authMiddleware, roleMiddleware('teacher'), teacherScheduleRoutes);
 
 app.get("/", (req, res) => {
   res.send({ 

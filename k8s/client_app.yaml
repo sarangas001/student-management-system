@@ -12,15 +12,32 @@ spec:
       labels:
         app: student-frontend
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
       - name: student-frontend
         image: sarangasl/student-management-frontend:latest
         imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
         env:
         - name: PORT
           value: "5173"
         ports:
         - containerPort: 5173
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "250m"
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
 ---
 apiVersion: v1
 kind: Service
@@ -33,4 +50,4 @@ spec:
   ports:
     -  port: 5173
        targetPort: 5173
-       nodePort: 32000
+       nodePort: 32002

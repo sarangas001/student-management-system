@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Setup script (contains secrets)
+setup.sh
+
+# Credentials
+docs/credentials/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
