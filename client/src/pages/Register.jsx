@@ -120,7 +120,7 @@ export default function Register() {
           ].map(({ step, title, desc }) => (
             <div key={step} className="flex gap-4 items-start">
               <div
-                className="flex items-center justify-center rounded-full text-xs font-bold flex-shrink-0"
+                className="flex items-center justify-center rounded-full text-xs font-bold shrink-0"
                 style={{ width: 36, height: 36, background: 'rgba(255,255,255,0.18)' }}
               >
                 {step}
@@ -161,7 +161,7 @@ export default function Register() {
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <div
-              className="flex items-center justify-center flex-shrink-0 rounded-xl transition-all duration-200"
+              className="flex items-center justify-center shrink-0 rounded-xl transition-all duration-200"
               style={{ width: 52, height: 52, background: selectedRole.bg, color: selectedRole.color }}
             >
               <UserPlus size={24} />
