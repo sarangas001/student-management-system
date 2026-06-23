@@ -1,16 +1,20 @@
-FROM node:24-slim
+# Build stage
+FROM node:24-slim AS build
 
 WORKDIR /app
 
 COPY package*.json ./
-
 RUN npm install
 
 COPY . .
 
-ENV PORT=5173
-ENV HOST=0.0.0.0
+RUN npm run build
 
-EXPOSE 5173
+# Production stage
+FROM nginx:alpine
 
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
+COPY --from=build /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
