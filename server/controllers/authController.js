@@ -92,16 +92,15 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const {email, password} = req.body;
-        const admin =await Teacher.findOne({email: email})
 
-        const role = await Admin.findOne({email}) ? 'admin' : await  Student.findOne({email}) ? 'student' : await Teacher.findOne({email}) ? 'teacher' : null;
+        const role = await Admin.findOne({email: email}) ? 'admin' : await  Student.findOne({email: email}) ? 'student' : await Teacher.findOne({email: email}) ? 'teacher' : null;
 
         if (!email || !password || !role) {
             return res.json({success: false, message: 'Please provide all required fields'});
         }
 
         if (role == 'admin') {
-            const admin = await Admin.findOne({email});
+            const admin = await Admin.findOne({email: email});
 
             if (!admin) {
                 return res.json({success: false, message: 'Admin not found'});
@@ -118,7 +117,7 @@ const login = async (req, res) => {
             console.log('Admin logged in:', admin);
 
         } else if (role == 'student') {
-            const student = await Student.findOne({email});
+            const student = await Student.findOne({email: email});
             if (!student) {
                 return res.json({success: false, message: 'Student not found'});
             }
@@ -129,7 +128,7 @@ const login = async (req, res) => {
             const token = jwtService.generateToken(student._id, 'student');
             jwtService.saveToken({res, token});
         } else if (role == 'teacher') {
-            const teacher = await Teacher.findOne({email});
+            const teacher = await Teacher.findOne({email: email});
             if (!teacher) {
                 return res.json({success: false, message: 'Teacher not found'});
             }

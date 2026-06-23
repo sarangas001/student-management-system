@@ -1,33 +1,39 @@
 import { useState } from 'react';
-import { LogIn, User, Lock, BookOpen } from 'lucide-react';
+import { LogIn, User, Lock, BookOpen, AlertCircle } from 'lucide-react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/useAppContext';
 
 export default function Login() {
   const { backendUrl, checkLogin, setIsLoggedIn } = useAppContext();
+  const navigate = useNavigate();
 
-  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
 
     try {
-      axios.defaults.withCredentials = true;
-
       const {data} = await axios.post( backendUrl +'/api/auth/login', { email, password });
       
       if (data.success) {
         setIsLoggedIn(true);
         checkLogin();
-        
+      } else {
+        setError(data.message || 'Invalid email or password.');
       }
 
-    }catch (error) {
-      console.error('Login failed:', error);
+    } catch (err) {
+      setError('Network error. Please check your connection.');
+      console.error('Login failed:', err);
+    } finally {
+      setLoading(false);
     }
-
   };
 
   return (
@@ -43,13 +49,20 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
+          {error && (
+            <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', background:'var(--red-bg)', color:'var(--red)', borderRadius:'8px', fontSize:'13px', border:'1px solid #fca5a5' }}>
+              <AlertCircle size={15} style={{ flexShrink:0 }} />
+              {error}
+            </div>
+          )}
+
           <div className="form-group">
-            <label>Username or Email</label>
+            <label>Email Address</label>
             <div style={{ position: 'relative' }}>
               <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
               <input 
-                type="text" 
-                placeholder="Enter your username or email" 
+                type="email" 
+                placeholder="Enter your email address" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -73,14 +86,24 @@ export default function Login() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '8px', fontSize: '14px' }}>
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: '8px', fontSize: '14px', opacity: loading ? 0.7 : 1 }}>
             <LogIn size={18} />
-            Sign In
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </form>
 
         <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <a href="#" style={{ fontSize: '13px', color: 'var(--blue)', textDecoration: 'none', fontWeight: '500' }}>Forgot your password?</a>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid var(--border)', fontSize: '13px', color: 'var(--text2)' }}>
+          Don&apos;t have an account?{' '}
+          <span
+            onClick={() => navigate('/register')}
+            style={{ color: 'var(--blue)', fontWeight: '600', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            Create account
+          </span>
         </div>
       </div>
     </div>
