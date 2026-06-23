@@ -632,6 +632,15 @@
     .sidebar { width: 180px; min-width: 180px; }
   }
 
+  /* Register page left panel */
+  @media (min-width: 900px) {
+    .reg-left-panel { display: flex !important; }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
   .warning-box {
   margin-top: 18px;
   padding: 14px;
