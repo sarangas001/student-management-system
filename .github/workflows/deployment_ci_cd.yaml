@@ -70,16 +70,19 @@ jobs:
             - name: Verify connection
               run: kubectl get nodes
             
-            - name: Generate Secret Manifest
-              env: 
-                  CLIENT_URL: ${{ secrets.CLIENT_URL }}
-                  NODE_ENV: ${{ secrets.NODE_ENV }}
-                  JWT_SECRET: ${{ secrets.JWT_SECRET }}
-                  MONGO_URI: ${{ secrets.MONGO_URI }}
+            - name: Create/Update Kubernetes Secret
+              env:
+                CLIENT_URL: ${{ secrets.CLIENT_URL }}
+                NODE_ENV: ${{ secrets.NODE_ENV }}
+                JWT_SECRET: ${{ secrets.JWT_SECRET }}
+                MONGO_URI: ${{ secrets.MONGO_URI }}
               run: |
-                  envsubst < k8s/server/secret_env.yaml > k8s/secret-generated.yaml
-            - name: Apply Secret
-              run: kubectl apply -f k8s/secret-generated.yaml
+                kubectl create secret generic env-secrets \
+                  --from-literal=CLIENT_URL="${CLIENT_URL}" \
+                  --from-literal=NODE_ENV="${NODE_ENV}" \
+                  --from-literal=JWT_SECRET="${JWT_SECRET}" \
+                  --from-literal=MONGO_URI="${MONGO_URI}" \
+                  --dry-run=client -o yaml | kubectl apply -f -
 
             - name: Deploy to AWS (Kubernetes)
               run: kubectl apply -f k8s/server/deployement.yaml
