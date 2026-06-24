@@ -34,6 +34,10 @@ export const SideBar = ({ role, activePage, showPage }) => {
             <div className={`nav-item ai-nav-item ${activePage === 'ai-assistant' ? 'active' : ''}`} onClick={() => showPage('ai-assistant')}>
                 <i className="ti ti-robot"></i>AI Assistant<span className="ai-badge">NEW</span>
             </div>
+            <div className="nav-section">Security</div>
+            <div className={`nav-item ${activePage === 'security-alert' ? 'active' : ''}`} onClick={() => showPage('security-alert')} style={{ color: '#ef4444' }}>
+                <i className="ti ti-shield-alert"></i>Security Alert
+            </div>
         </div>
     )}
     {/* <!-- Teacher Nav --> */}

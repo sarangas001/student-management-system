@@ -20,6 +20,7 @@ import AIFloatingPanel from './components/AIFloatingPanel'
 import AIAssistant from './pages/AIAssistant'
 import { useState } from 'react'
 import Login from './pages/Login'
+import SecurityAlert from './pages/SecurityAlert'
 import { useAppContext } from './context/useAppContext'
 
 function App() {
@@ -73,6 +74,7 @@ function App() {
             {role === 'student' && activePage === 'student-schedule' && <StudentSchedule />}
 
             {activePage === 'ai-assistant' && <AIAssistant role={role} />}
+            {activePage === 'security-alert' && <SecurityAlert />}
           </div>
         </div>
       </div >
