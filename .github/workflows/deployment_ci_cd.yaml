@@ -129,6 +129,8 @@ jobs:
                   push: true
                   tags: |
                       ${{ secrets.DOCKER_USERNAME }}/student-management-frontend:latest
+                  build-args: |
+                      VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}
     
     client-deploy-to-eks:
         runs-on: ubuntu-latest
@@ -151,16 +153,7 @@ jobs:
             - name: Update kubeconfig for EKS
               run: |
                   aws eks update-kubeconfig --name student-client --region ap-south-1
-
-            - name: Generate Secret Manifest
-              env: 
-                  VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
-
-              run: |
-                  envsubst < k8s/client/secret_env.yaml > k8s/client/secret-generated.yaml
-            - name: Apply Secret
-              run: kubectl apply -f k8s/client/secret-generated.yaml
-            
+                  
             - name: Verify connection
               run: kubectl get nodes
 
