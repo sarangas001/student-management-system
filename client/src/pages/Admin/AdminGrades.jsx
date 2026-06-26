@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAppContext } from "../../context/useAppContext";
 
@@ -17,69 +17,58 @@ function AdminGrades() {
   const [selectedAssessment, setSelectedAssessment] = useState('Mid Exam');
   const [students, setStudents] = useState([]);
   const [editedMarks, setEditedMarks] = useState({});
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const { data } = await axios.get(
-          `${backendUrl}/api/admin/grades/courses`,
-          { withCredentials: true }
-        );
+    axios.get(`${backendUrl}/api/admin/grades/courses`, { withCredentials: true })
+      .then(({ data }) => {
         if (data.success && data.courses.length > 0) {
           setCourses(data.courses);
           setSelectedCourse(data.courses[0]._id);
         }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchCourses();
+      })
+      .catch(console.error);
   }, [backendUrl]);
 
-  const fetchGrades = useCallback(() => {
-    if (!selectedCourse) return;
-    setLoading(true);
-    setEditedMarks({});
-    setMessage('');
-    axios.get(
-      `${backendUrl}/api/admin/grades`,
-      { params: { courseId: selectedCourse, assessmentType: selectedAssessment }, withCredentials: true }
-    ).then(({ data }) => {
-      if (data.success) setStudents(data.grades);
-    }).catch(console.error)
-      .finally(() => setLoading(false));
-  }, [backendUrl, selectedCourse, selectedAssessment]);
-
   useEffect(() => {
-    fetchGrades();
-  }, [selectedCourse, selectedAssessment, fetchGrades]);
+    if (!selectedCourse) return;
+    let active = true;
+    axios.get(`${backendUrl}/api/admin/grades`, {
+      params: { courseId: selectedCourse, assessmentType: selectedAssessment },
+      withCredentials: true
+    }).then(({ data }) => {
+      if (active) {
+        setStudents(data.success ? data.grades : []);
+        setEditedMarks({});
+        setMessage('');
+      }
+    }).catch(console.error);
+    return () => { active = false; };
+  }, [backendUrl, selectedCourse, selectedAssessment, refreshKey]);
 
   const handleMarksChange = (studentMongoId, value) => {
     setEditedMarks(prev => ({ ...prev, [studentMongoId]: value }));
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setSaving(true);
     setMessage('');
-    try {
-      const updates = Object.entries(editedMarks).map(([studentMongoId, marks]) =>
-        axios.put(
-          `${backendUrl}/api/admin/grades/student/${studentMongoId}`,
-          { courseId: selectedCourse, assessmentType: selectedAssessment, marks: Number(marks) },
-          { withCredentials: true }
-        )
-      );
-      await Promise.all(updates);
-      setMessage('Grades saved successfully!');
-      fetchGrades();
-    } catch {
-      setMessage('Error saving grades.');
-    } finally {
-      setSaving(false);
-    }
+    const updates = Object.entries(editedMarks).map(([studentMongoId, marks]) =>
+      axios.put(
+        `${backendUrl}/api/admin/grades/student/${studentMongoId}`,
+        { courseId: selectedCourse, assessmentType: selectedAssessment, marks: Number(marks) },
+        { withCredentials: true }
+      )
+    );
+    Promise.all(updates)
+      .then(() => {
+        setMessage('Grades saved successfully!');
+        setRefreshKey(k => k + 1);
+      })
+      .catch(() => setMessage('Error saving grades.'))
+      .finally(() => setSaving(false));
   };
 
   return (
@@ -113,53 +102,49 @@ function AdminGrades() {
 
         {/* Table */}
         <div style={{ border: "1px solid var(--border)", borderRadius: "12px", overflow: "hidden" }}>
-          {loading ? (
-            <p style={{ padding: '16px', color: 'var(--muted)' }}>Loading grades…</p>
-          ) : (
-            <table>
-              <thead>
+          <table>
+            <thead>
+              <tr>
+                <th>STUDENT ID</th>
+                <th>NAME</th>
+                <th>MARKS (/100)</th>
+                <th>GRADE</th>
+                <th>REMARKS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.length === 0 ? (
                 <tr>
-                  <th>STUDENT ID</th>
-                  <th>NAME</th>
-                  <th>MARKS (/100)</th>
-                  <th>GRADE</th>
-                  <th>REMARKS</th>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '16px', color: 'var(--muted)' }}>
+                    No grades found for this course and assessment
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {students.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" style={{ textAlign: 'center', padding: '16px', color: 'var(--muted)' }}>
-                      No grades found for this course and assessment
+              ) : students.map((g) => {
+                const mongoId = g.student?._id;
+                const currentMarks = editedMarks[mongoId] !== undefined ? editedMarks[mongoId] : g.marks;
+                return (
+                  <tr key={g._id}>
+                    <td>{g.student?.studentId}</td>
+                    <td>{g.student?.firstName} {g.student?.lastName}</td>
+                    <td>
+                      <input
+                        type="number"
+                        className="inline-input"
+                        min="0"
+                        max="100"
+                        value={currentMarks}
+                        onChange={(e) => handleMarksChange(mongoId, e.target.value)}
+                      />
                     </td>
+                    <td>
+                      <span className={`badge ${badgeForGrade(g.grade)}`}>{g.grade}</span>
+                    </td>
+                    <td>{g.remark}</td>
                   </tr>
-                ) : students.map((g) => {
-                  const mongoId = g.student?._id;
-                  const currentMarks = editedMarks[mongoId] !== undefined ? editedMarks[mongoId] : g.marks;
-                  return (
-                    <tr key={g._id}>
-                      <td>{g.student?.studentId}</td>
-                      <td>{g.student?.firstName} {g.student?.lastName}</td>
-                      <td>
-                        <input
-                          type="number"
-                          className="inline-input"
-                          min="0"
-                          max="100"
-                          value={currentMarks}
-                          onChange={(e) => handleMarksChange(mongoId, e.target.value)}
-                        />
-                      </td>
-                      <td>
-                        <span className={`badge ${badgeForGrade(g.grade)}`}>{g.grade}</span>
-                      </td>
-                      <td>{g.remark}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {/* Buttons */}
