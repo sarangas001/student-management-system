@@ -39,27 +39,23 @@ function AdminGrades() {
     fetchCourses();
   }, [backendUrl]);
 
-  const fetchGrades = useCallback(async () => {
+  const fetchGrades = useCallback(() => {
     if (!selectedCourse) return;
     setLoading(true);
     setEditedMarks({});
     setMessage('');
-    try {
-      const { data } = await axios.get(
-        `${backendUrl}/api/admin/grades`,
-        { params: { courseId: selectedCourse, assessmentType: selectedAssessment }, withCredentials: true }
-      );
+    axios.get(
+      `${backendUrl}/api/admin/grades`,
+      { params: { courseId: selectedCourse, assessmentType: selectedAssessment }, withCredentials: true }
+    ).then(({ data }) => {
       if (data.success) setStudents(data.grades);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    }).catch(console.error)
+      .finally(() => setLoading(false));
   }, [backendUrl, selectedCourse, selectedAssessment]);
 
   useEffect(() => {
     fetchGrades();
-  }, [fetchGrades]);
+  }, [selectedCourse, selectedAssessment, fetchGrades]);
 
   const handleMarksChange = (studentMongoId, value) => {
     setEditedMarks(prev => ({ ...prev, [studentMongoId]: value }));
@@ -79,7 +75,7 @@ function AdminGrades() {
       await Promise.all(updates);
       setMessage('Grades saved successfully!');
       fetchGrades();
-    } catch (err) {
+    } catch {
       setMessage('Error saving grades.');
     } finally {
       setSaving(false);
