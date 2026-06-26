@@ -1,4 +1,5 @@
 
+const Student = require('../module/studentModel');
 const getAllStudents = async (req, res) => {
   try {
     const students = await Student.find();
