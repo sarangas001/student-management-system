@@ -15,6 +15,9 @@ spec:
       containers:
       - name: student-server
         image: sarangasl/student-management-backend:latest
+        envFrom:
+          - secretRef:
+              name: env-secrets
         env:
         - name: PORT
           value: "3001"
