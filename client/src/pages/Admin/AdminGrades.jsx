@@ -1,67 +1,90 @@
-import  { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
+import { useAppContext } from "../../context/useAppContext";
 
-function AdminGrades() {
-  const gradeData = {
-  CSE301: {
-    "Mid Exam": [
-      { id: "FC222010", name: "Methmini", marks: 85, grade: "A", remark: "Excellent", badge: "badge-green" },
-      { id: "FC222015", name: "Sathsarani", marks: 72, grade: "B", remark: "Good", badge: "badge-blue" },
-      { id: "FC222032", name: "Daraniyagala", marks: 91, grade: "A+", remark: "Outstanding", badge: "badge-green" },
-    ],
-
-    "Final Exam": [
-      { id: "FC222010", name: "Methmini", marks: 90, grade: "A+", remark: "Outstanding", badge: "badge-green" },
-      { id: "FC222015", name: "Sathsarani", marks: 80, grade: "A", remark: "Excellent", badge: "badge-green" },
-      { id: "FC222032", name: "Daraniyagala", marks: 88, grade: "A", remark: "Excellent", badge: "badge-green" },
-    ],
-
-    Assignment: [
-      { id: "FC222010", name: "Methmini", marks: 86, grade: "A", remark: "Excellent", badge: "badge-green" },
-      { id: "FC222015", name: "Sathsarani", marks: 76, grade: "B+", remark: "Good", badge: "badge-blue" },
-      { id: "FC222032", name: "Daraniyagala", marks: 81, grade: "A", remark: "Excellent", badge: "badge-green" },
-    ],
-  },
-
-  CCS401: {
-    "Mid Exam": [
-      { id: "FC222022", name: "Samarakoon", marks: 78, grade: "B+", remark: "Good", badge: "badge-blue" },
-      { id: "FC222038", name: "Niralgama", marks: 65, grade: "B-", remark: "Average", badge: "badge-blue" },
-      { id: "FC222039", name: "Seneviratne", marks: 92, grade: "A+", remark: "Outstanding", badge: "badge-green" },
-    ],
-
-    "Final Exam": [
-      { id: "FC222022", name: "Samarakoon", marks: 84, grade: "A", remark: "Excellent", badge: "badge-green" },
-      { id: "FC222038", name: "Niralgama", marks: 75, grade: "B+", remark: "Good", badge: "badge-blue" },
-      { id: "FC222039", name: "Seneviratne", marks: 95, grade: "A+", remark: "Outstanding", badge: "badge-green" },
-    ],
-
-    Assignment: [
-      { id: "FC222022", name: "Samarakoon", marks: 80, grade: "A", remark: "Excellent", badge: "badge-green" },
-      { id: "FC222038", name: "Niralgama", marks: 71, grade: "B", remark: "Good", badge: "badge-blue" },
-      { id: "FC222039", name: "Seneviratne", marks: 89, grade: "A", remark: "Excellent", badge: "badge-green" },
-    ],
-  },
-
-  CIS501: {
-    "Mid Exam": [
-      { id: "FC222016", name: "Ranasinghe", marks: 69, grade: "B-", remark: "Average", badge: "badge-blue" },
-    ],
-
-    "Final Exam": [
-      { id: "FC222016", name: "Ranasinghe", marks: 82, grade: "A", remark: "Excellent", badge: "badge-green" },
-    ],
-
-    Assignment: [
-      { id: "FC222016", name: "Ranasinghe", marks: 88, grade: "A", remark: "Excellent", badge: "badge-green" },
-    ],
-  },
+const badgeForGrade = (grade) => {
+  if (!grade) return 'badge-blue';
+  if (grade.startsWith('A')) return 'badge-green';
+  if (grade.startsWith('B')) return 'badge-blue';
+  return 'badge-amber';
 };
 
-  const [selectedCourse, setSelectedCourse] = useState("CSE301");
-  const [selectedAssessment, setSelectedAssessment] = useState("Mid Exam");
+function AdminGrades() {
+  const { backendUrl } = useAppContext();
 
-  const students =
-    gradeData[selectedCourse]?.[selectedAssessment] || [];
+  const [courses, setCourses] = useState([]);
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedAssessment, setSelectedAssessment] = useState('Mid Exam');
+  const [students, setStudents] = useState([]);
+  const [editedMarks, setEditedMarks] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendUrl}/api/admin/grades/courses`,
+          { withCredentials: true }
+        );
+        if (data.success && data.courses.length > 0) {
+          setCourses(data.courses);
+          setSelectedCourse(data.courses[0]._id);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchCourses();
+  }, [backendUrl]);
+
+  const fetchGrades = useCallback(async () => {
+    if (!selectedCourse) return;
+    setLoading(true);
+    setEditedMarks({});
+    setMessage('');
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/admin/grades`,
+        { params: { courseId: selectedCourse, assessmentType: selectedAssessment }, withCredentials: true }
+      );
+      if (data.success) setStudents(data.grades);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [backendUrl, selectedCourse, selectedAssessment]);
+
+  useEffect(() => {
+    fetchGrades();
+  }, [fetchGrades]);
+
+  const handleMarksChange = (studentMongoId, value) => {
+    setEditedMarks(prev => ({ ...prev, [studentMongoId]: value }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage('');
+    try {
+      const updates = Object.entries(editedMarks).map(([studentMongoId, marks]) =>
+        axios.put(
+          `${backendUrl}/api/admin/grades/student/${studentMongoId}`,
+          { courseId: selectedCourse, assessmentType: selectedAssessment, marks: Number(marks) },
+          { withCredentials: true }
+        )
+      );
+      await Promise.all(updates);
+      setMessage('Grades saved successfully!');
+      fetchGrades();
+    } catch (err) {
+      setMessage('Error saving grades.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="page active">
@@ -71,137 +94,97 @@ function AdminGrades() {
         </div>
 
         {/* Filters */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "20px",
-            marginBottom: "25px",
-          }}
-        >
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "25px" }}>
           <div className="form-group">
-            <label
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontWeight: "600",
-              }}
-            >
-              Course
-            </label>
-
-            <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-            >
-              <option value="CSE301">
-                CSE301 — Software Engineering
-              </option>
-
-              <option value="CCS401">
-                CCS401 — Computer Science
-              </option>
-
-              <option value="CIS501">
-                CIS501 — Information System
-              </option>
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>Course</label>
+            <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
+              {courses.map(c => (
+                <option key={c._id} value={c._id}>{c.code} — {c.name}</option>
+              ))}
             </select>
           </div>
 
           <div className="form-group">
-            <label
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontWeight: "600",
-              }}
-            >
-              Assessment
-            </label>
-
-            <select
-              value={selectedAssessment}
-              onChange={(e) =>
-                setSelectedAssessment(e.target.value)
-              }
-            >
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "600" }}>Assessment</label>
+            <select value={selectedAssessment} onChange={(e) => setSelectedAssessment(e.target.value)}>
               <option value="Mid Exam">Mid Exam</option>
               <option value="Final Exam">Final Exam</option>
               <option value="Assignment">Assignment</option>
-              
-              
-                
+              <option value="Quiz">Quiz</option>
             </select>
           </div>
         </div>
 
         {/* Table */}
-        <div
-          style={{
-            border: "1px solid var(--border)",
-            borderRadius: "12px",
-            overflow: "hidden",
-          }}
-        >
-          <table>
-            <thead>
-              <tr>
-                <th>STUDENT ID</th>
-                <th>NAME</th>
-                <th>MARKS (/100)</th>
-                <th>GRADE</th>
-                <th>REMARKS</th>
-              </tr>
-            </thead>
-
-           <tbody>
-  {students.map((student) => (
-    <tr
-      key={`${selectedCourse}-${selectedAssessment}-${student.id}`}
-    >
-      <td>{student.id}</td>
-
-      <td>{student.name}</td>
-
-      <td>
-        <input
-          type="number"
-          className="inline-input"
-          value={student.marks}
-          readOnly
-        />
-      </td>
-
-      <td>
-        <span className={`badge ${student.badge}`}>
-          {student.grade}
-        </span>
-      </td>
-
-      <td>{student.remark}</td>
-    </tr>
-  ))}
-</tbody>
-          </table>
+        <div style={{ border: "1px solid var(--border)", borderRadius: "12px", overflow: "hidden" }}>
+          {loading ? (
+            <p style={{ padding: '16px', color: 'var(--muted)' }}>Loading grades…</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>STUDENT ID</th>
+                  <th>NAME</th>
+                  <th>MARKS (/100)</th>
+                  <th>GRADE</th>
+                  <th>REMARKS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '16px', color: 'var(--muted)' }}>
+                      No grades found for this course and assessment
+                    </td>
+                  </tr>
+                ) : students.map((g) => {
+                  const mongoId = g.student?._id;
+                  const currentMarks = editedMarks[mongoId] !== undefined ? editedMarks[mongoId] : g.marks;
+                  return (
+                    <tr key={g._id}>
+                      <td>{g.student?.studentId}</td>
+                      <td>{g.student?.firstName} {g.student?.lastName}</td>
+                      <td>
+                        <input
+                          type="number"
+                          className="inline-input"
+                          min="0"
+                          max="100"
+                          value={currentMarks}
+                          onChange={(e) => handleMarksChange(mongoId, e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <span className={`badge ${badgeForGrade(g.grade)}`}>{g.grade}</span>
+                      </td>
+                      <td>{g.remark}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Buttons */}
-        <div
-          style={{
-            display: "flex",
-            gap: "15px",
-            marginTop: "25px",
-          }}
-        >
-          <button className="btn btn-primary">
+        <div style={{ display: "flex", gap: "15px", marginTop: "25px", alignItems: "center" }}>
+          <button
+            className="btn btn-primary"
+            onClick={handleSave}
+            disabled={saving || Object.keys(editedMarks).length === 0}
+          >
             <i className="ti ti-device-floppy"></i>
-            Save Grades
+            {saving ? 'Saving…' : 'Save Grades'}
           </button>
-
           <button className="btn">
             <i className="ti ti-file-type-pdf"></i>
             Export Results
           </button>
+          {message && (
+            <span style={{ color: message.includes('Error') ? 'var(--red)' : 'var(--green)' }}>
+              {message}
+            </span>
+          )}
         </div>
       </div>
     </div>
