@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useAppContext } from '../../context/useAppContext';
+import axios from 'axios';
 
 // ─── API Functions ────────────────────────────────────────────────────────────
 
-/**
- * Sri Lankan public holidays — keyed as "YYYY-MM-DD".
- * Covers 2025 and 2026 statutory + Poya days.
- */
 const SL_HOLIDAYS = {
   // 2025
   '2025-01-01': 'New Year\'s Day',
@@ -48,77 +46,72 @@ const SL_HOLIDAYS = {
   '2026-12-25': 'Christmas Day',
 };
 
-/** Fetch attendance summary statistics for a given month/year */
-const fetchAttendanceSummaryAPI = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Simulate sparse attendance records (only weekdays that aren't holidays)
-      // In production this would come from the server.
-      const sampleStatuses = { 1:'P',2:'P',3:'P',4:'L',5:'P',
-        8:'P',9:'A',10:'P',11:'P',12:'P',
-        15:'P',16:'P',17:'P',18:'P',19:'L',
-        22:'P',23:'P',24:'A',25:'P',26:'P' };
-      resolve({
-        present: 1089,
-        absent: 112,
-        late: 47,
-        // day → status override from the server (H is derived from SL_HOLIDAYS on the client)
-        attendanceByDay: sampleStatuses,
-      });
-    }, 600);
-  });
-};
-
-/** Fetch courses list for the mark-attendance dropdown */
-const fetchCoursesAPI = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        { code: 'CSE301', name: 'Software Engineering' },
-        { code: 'CCS401', name: 'Computer Science' },
-        { code: 'CIS501', name: 'Information Systems' },
-      ]);
-    }, 400);
-  });
-};
-
-/** Fetch enrolled students for a given course */
-const fetchStudentsByCourseAPI = async (courseCode) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const map = {
-        CSE301: [
-          { id: 'FC222038', name: 'N.G.N.S. Niralgama' },
-          { id: 'FC222039', name: 'G.A.L.H. Seneviratne' },
-          { id: 'FC222015', name: 'K.G.A.K. Sathsarani' },
-          { id: 'FC222016', name: 'R.D.R.P. Ranasinghe' },
-        ],
-        CCS401: [
-          { id: 'FC222010', name: 'R.A.D.S. Methmini' },
-          { id: 'FC222022', name: 'M.A. Samarakoon' },
-          { id: 'FC222032', name: 'R.S. Daraniyagala' },
-        ],
-        CIS501: [
-          { id: 'FC222015', name: 'K.G.A.K. Sathsarani' },
-          { id: 'FC222016', name: 'R.D.R.P. Ranasinghe' },
-          { id: 'FC222022', name: 'M.A. Samarakoon' },
-          { id: 'FC222038', name: 'N.G.N.S. Niralgama' },
-          { id: 'FC222039', name: 'G.A.L.H. Seneviratne' },
-        ],
+const fetchAttendanceSummaryAPI = async (backendUrl, month, year) => {
+  try {
+    const { data } = await axios.get(`${backendUrl}/api/admin/attendance/summary`, {
+      params: { month, year },
+      withCredentials: true
+    });
+    if (data.success) {
+      return {
+        present: data.data.Present || 0,
+        absent: data.data.Absent || 0,
+        late: data.data.Late || 0,
+        attendanceByDay: {}
       };
-      resolve(map[courseCode] ?? []);
-    }, 300);
-  });
+    }
+  } catch (error) {
+    console.error('Error fetching attendance summary:', error);
+  }
+  return { present: 0, absent: 0, late: 0, attendanceByDay: {} };
 };
 
-/** Save attendance records for a session */
-const saveAttendanceAPI = async (courseCode, date, records) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      console.log('Saving attendance:', { courseCode, date, records });
-      resolve({ success: true });
-    }, 600);
-  });
+const fetchCoursesAPI = async (backendUrl) => {
+  try {
+    const { data } = await axios.get(`${backendUrl}/api/admin/attendance/courses`, {
+      withCredentials: true
+    });
+    if (data.success) {
+      return data.data.map(c => ({ id: c._id, code: c.code, name: c.name }));
+    }
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+  }
+  return [];
+};
+
+const fetchStudentsByCourseAPI = async (backendUrl, courseId) => {
+  try {
+    const { data } = await axios.get(`${backendUrl}/api/admin/attendance/students`, {
+      params: { courseId },
+      withCredentials: true
+    });
+    if (data.success) {
+      return data.data.map(student => ({
+        id: student._id,
+        displayId: student.studentId,
+        name: `${student.firstName} ${student.lastName}`
+      }));
+    }
+  } catch (error) {
+    console.error('Error fetching students by course:', error);
+  }
+  return [];
+};
+
+const saveAttendanceAPI = async (backendUrl, courseId, date, records, adminId) => {
+  try {
+    const { data } = await axios.post(`${backendUrl}/api/admin/attendance`, {
+      courseId,
+      date,
+      attendanceData: records,
+      markedBy: adminId
+    }, { withCredentials: true });
+    return data.success;
+  } catch (error) {
+    console.error('Error saving attendance:', error);
+    return false;
+  }
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -137,30 +130,20 @@ const MONTH_NAMES = [
   'July','August','September','October','November','December',
 ];
 
-/**
- * Build a flat array of calendar cells for a given month.
- * Each cell: { day, blank, isHoliday, holidayName, isWeekend, isToday, status }
- * `attendanceByDay` maps day-number → server status ('P'|'A'|'L').
- * Holidays override everything → 'H'.
- * weekends with no record stay neutral.
- */
 function buildCalendarCells(year, month, attendanceByDay = {}) {
-  const daysInMonth = new Date(year, month, 0).getDate(); // month is 1-based
-  // JS getDay(): 0=Sun…6=Sat → convert to Mon-start index (0=Mon…6=Sun)
+  const daysInMonth = new Date(year, month, 0).getDate();
   const firstDow = new Date(year, month - 1, 1).getDay();
-  const leadingBlanks = (firstDow === 0 ? 6 : firstDow - 1); // Mon-start offset
+  const leadingBlanks = (firstDow === 0 ? 6 : firstDow - 1); 
 
   const todayObj = new Date();
-  const isCurrentMonth =
-    todayObj.getFullYear() === year && todayObj.getMonth() + 1 === month;
+  const isCurrentMonth = todayObj.getFullYear() === year && todayObj.getMonth() + 1 === month;
 
   const cells = [];
-  // Leading blank cells
   for (let i = 0; i < leadingBlanks; i++) cells.push({ blank: true });
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dow = new Date(year, month - 1, d).getDay(); // 0=Sun,6=Sat
+    const dow = new Date(year, month - 1, d).getDay();
     const isWeekend = dow === 0 || dow === 6;
     const holidayName = SL_HOLIDAYS[dateStr];
     const isHoliday = Boolean(holidayName);
@@ -182,6 +165,8 @@ function buildCalendarCells(year, month, attendanceByDay = {}) {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const AdminAttendance = () => {
+  const { backendUrl, user } = useAppContext();
+
   // --- Summary panel state ---
   const [summary, setSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
@@ -199,7 +184,6 @@ export const AdminAttendance = () => {
   });
   const [students, setStudents] = useState([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
-  // { [studentId]: 'Present' | 'Absent' | 'Late' }
   const [attendanceMap, setAttendanceMap] = useState({});
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -208,12 +192,12 @@ export const AdminAttendance = () => {
   useEffect(() => {
     const loadSummary = async () => {
       setSummaryLoading(true);
-      const data = await fetchAttendanceSummaryAPI(calMonth, calYear);
+      const data = await fetchAttendanceSummaryAPI(backendUrl, calMonth, calYear);
       setSummary(data);
       setSummaryLoading(false);
     };
-    loadSummary();
-  }, [calMonth, calYear]);
+    if (backendUrl) loadSummary();
+  }, [backendUrl, calMonth, calYear]);
 
   // ── Calendar navigation helpers ────────────────────────────────────────────
   const goToPrevMonth = () => {
@@ -228,28 +212,27 @@ export const AdminAttendance = () => {
   // ── Load courses on mount ──────────────────────────────────────────────────
   useEffect(() => {
     const loadCourses = async () => {
-      const data = await fetchCoursesAPI();
+      const data = await fetchCoursesAPI(backendUrl);
       setCourses(data);
-      if (data.length > 0) setSelectedCourse(data[0].code);
+      if (data.length > 0) setSelectedCourse(data[0].id);
     };
-    loadCourses();
-  }, []);
+    if (backendUrl) loadCourses();
+  }, [backendUrl]);
 
   // ── Load students whenever course changes ──────────────────────────────────
   useEffect(() => {
-    if (!selectedCourse) return;
+    if (!selectedCourse || !backendUrl) return;
     const loadStudents = async () => {
       setStudentsLoading(true);
-      const data = await fetchStudentsByCourseAPI(selectedCourse);
+      const data = await fetchStudentsByCourseAPI(backendUrl, selectedCourse);
       setStudents(data);
-      // Default everyone to Present
       const defaults = {};
       data.forEach((s) => { defaults[s.id] = 'Present'; });
       setAttendanceMap(defaults);
       setStudentsLoading(false);
     };
     loadStudents();
-  }, [selectedCourse]);
+  }, [backendUrl, selectedCourse]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -260,11 +243,18 @@ export const AdminAttendance = () => {
   const handleSaveAttendance = async () => {
     setSaving(true);
     setSaveSuccess(false);
-    const records = Object.entries(attendanceMap).map(([id, status]) => ({ id, status }));
-    await saveAttendanceAPI(selectedCourse, selectedDate, records);
+    const records = Object.entries(attendanceMap).map(([id, status]) => ({ studentId: id, status }));
+    const success = await saveAttendanceAPI(backendUrl, selectedCourse, selectedDate, records, user);
     setSaving(false);
-    setSaveSuccess(true);
-    setTimeout(() => setSaveSuccess(false), 3000);
+    if (success) {
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      // Refresh summary
+      const data = await fetchAttendanceSummaryAPI(backendUrl, calMonth, calYear);
+      setSummary(data);
+    } else {
+      alert("Failed to save attendance.");
+    }
   };
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -334,7 +324,6 @@ export const AdminAttendance = () => {
               {/* Calendar cells */}
               {buildCalendarCells(calYear, calMonth, summary.attendanceByDay).map((cell, idx) => {
                 if (cell.blank) {
-                  // Empty leading cell
                   return <div key={`blank-${idx}`} />;
                 }
                 const cellClass = cell.status ? STATUS_CELL_CLASS[cell.status] : '';
@@ -397,7 +386,7 @@ export const AdminAttendance = () => {
             className="cursor-pointer"
           >
             {courses.map((c) => (
-              <option key={c.code} value={c.code}>
+              <option key={c.id} value={c.id}>
                 {c.code} — {c.name}
               </option>
             ))}
@@ -438,7 +427,7 @@ export const AdminAttendance = () => {
             ) : (
               students.map((student) => (
                 <tr key={student.id}>
-                  <td>{student.id} — {student.name}</td>
+                  <td>{student.displayId} — {student.name}</td>
                   <td>
                     <select
                       className="inline-select cursor-pointer"
