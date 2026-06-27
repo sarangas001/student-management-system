@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/useAppContext';
 
 export default function Login() {
-  const { backendUrl, checkLogin, setIsLoggedIn } = useAppContext();
+  const { backendUrl, checkLogin } = useAppContext();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -22,8 +22,7 @@ export default function Login() {
       const {data} = await axios.post( backendUrl +'/api/auth/login', { email, password });
       
       if (data.success) {
-        setIsLoggedIn(true);
-        checkLogin();
+        await checkLogin();
       } else {
         setError(data.message || 'Invalid email or password.');
       }
