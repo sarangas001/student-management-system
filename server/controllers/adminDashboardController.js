@@ -2,8 +2,28 @@ const Student = require('../module/studentModel');
 const Attendance = require('../module/attendanceModel');
 const Grade = require('../module/gradeModel');
 
-const getDashboardStats = async (req, res) => {
 
+
+const Student = require("../module/studentModel");
+const Teacher = require("../module/teacherModel");
+const Course = require("../module/courseModel");
+
+const getDashboardStats = async (req, res) => {
+  try {
+    const totalStudents = await Student.countDocuments();
+    const totalTeachers = await Teacher.countDocuments();
+    const totalCourses = await Course.countDocuments();
+
+    res.status(200).json({
+      totalStudents,
+      totalTeachers,
+      totalCourses,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 };
 
 const getRecentActivities = async (req, res) => {
