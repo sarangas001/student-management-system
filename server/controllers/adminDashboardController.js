@@ -1,10 +1,6 @@
 const Student = require('../module/studentModel');
 const Attendance = require('../module/attendanceModel');
 const Grade = require('../module/gradeModel');
-
-
-
-const Student = require("../module/studentModel");
 const Teacher = require("../module/teacherModel");
 const Course = require("../module/courseModel");
 
