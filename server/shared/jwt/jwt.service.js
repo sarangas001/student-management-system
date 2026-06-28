@@ -1,8 +1,8 @@
 const { generateToken, saveToken, clearToken, decodeToken } = require("./jwt.repo");
 
 class JWTService {
-    generateToken(payload) {
-        return generateToken(payload);
+    generateToken(user_id, role) {
+        return generateToken(user_id, role);
     }
 
     saveToken({ res, token }) {

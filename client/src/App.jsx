@@ -26,6 +26,7 @@ function App() {
     const { isLoggedIn, role} = useAppContext();
     const [activePage, setActivePage] = useState(role ? `${role}-dashboard` : 'null-dashboard');
     const [prevRole, setPrevRole] = useState(role);
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
 
     if (role !== prevRole) {
         setPrevRole(role);
@@ -36,7 +37,18 @@ function App() {
 
     const showPage = (page) => {
         setActivePage(page);
+        // Close floating panel when navigating to the full AI page
+        if (page === 'ai-assistant') setIsPanelOpen(false);
     }
+
+    const togglePanel = () => {
+        // If on the full AI page, navigate away to home instead of showing mini panel
+        if (activePage === 'ai-assistant') {
+            setActivePage(`${role}-dashboard`);
+            return;
+        }
+        setIsPanelOpen(prev => !prev);
+    };
 
   if (!isLoggedIn) {
     return <Login />
@@ -77,11 +89,22 @@ function App() {
         </div>
       </div >
 
-      {/* <!-- Floating AI button --> */}
-      <button id="ai-fab" title="AI Assistant"> <Bot />   </button>
+      {/* Floating AI FAB button */}
+      <button
+        id="ai-fab"
+        title={isPanelOpen ? 'Close AI Assistant' : 'Open AI Assistant'}
+        onClick={togglePanel}
+        style={{ transition: 'transform .2s', transform: isPanelOpen ? 'rotate(15deg)' : 'none' }}
+      >
+        <Bot />
+      </button>
 
-      {/* <!-- Floating AI panel --> */}
-      <AIFloatingPanel />
+      {/* Floating AI mini panel */}
+      <AIFloatingPanel
+        role={role}
+        isOpen={isPanelOpen}
+        onClose={() => setIsPanelOpen(false)}
+      />
 
     </>
     
