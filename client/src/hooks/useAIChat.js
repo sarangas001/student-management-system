@@ -31,7 +31,8 @@ const useAIChat = (role) => {
     const [isSending, setIsSending] = useState(false);  // sending a message
     const [error, setError] = useState(null);
 
-    // Track mount status to prevent state updates after unmount
+    // mounted ref — guards async callbacks (sendMessage, startNewSession) that
+    // run outside of effects and may resolve after the component unmounts.
     const mounted = useRef(true);
     useEffect(() => {
         mounted.current = true;
@@ -39,37 +40,45 @@ const useAIChat = (role) => {
     }, []);
 
     /* ── Load history + sidebar on mount ────────────────────── */
-    const loadHistory = useCallback(async () => {
-        if (!mounted.current) return;
-        setIsLoading(true);
-        setError(null);
-        try {
-            const [historyRes, contextRes] = await Promise.all([
-                axios.get(`${BACKEND}/api/ai-assistent/history`, { withCredentials: true }),
-                axios.get(`${BACKEND}/api/ai-assistent/context`, { withCredentials: true }),
-            ]);
-
-            if (!mounted.current) return;
-
-            if (historyRes.data.success) {
-                setMessages(historyRes.data.messages || []);
-            }
-            if (contextRes.data.success) {
-                setSidebarStats(contextRes.data.sidebarStats || {});
-            }
-        } catch (err) {
-            if (mounted.current) {
-                setError('Failed to load chat history. Please refresh.');
-                console.error('[useAIChat] loadHistory error:', err);
-            }
-        } finally {
-            if (mounted.current) setIsLoading(false);
-        }
-    }, []);
-
+    // Async logic is inlined inside the effect body (not called via a callback
+    // reference) so that ESLint react-hooks/set-state-in-effect is satisfied.
     useEffect(() => {
-        if (role) loadHistory();
-    }, [role, loadHistory]);
+        if (!role) return;
+
+        let cancelled = false;  // local cleanup flag for this effect run
+
+        const fetchHistory = async () => {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const [historyRes, contextRes] = await Promise.all([
+                    axios.get(`${BACKEND}/api/ai-assistent/history`, { withCredentials: true }),
+                    axios.get(`${BACKEND}/api/ai-assistent/context`, { withCredentials: true }),
+                ]);
+
+                if (cancelled) return;
+
+                if (historyRes.data.success) {
+                    setMessages(historyRes.data.messages || []);
+                }
+                if (contextRes.data.success) {
+                    setSidebarStats(contextRes.data.sidebarStats || {});
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError('Failed to load chat history. Please refresh.');
+                    console.error('[useAIChat] loadHistory error:', err);
+                }
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
+        };
+
+        fetchHistory();
+
+        // Cleanup: mark cancelled so in-flight responses are ignored
+        return () => { cancelled = true; };
+    }, [role]);
 
     /* ── Send a message ──────────────────────────────────────── */
     const sendMessage = useCallback(async (text) => {
