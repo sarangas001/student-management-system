@@ -1,6 +1,47 @@
+import { useState, useEffect } from 'react';
 import { Users, BookOpen, CalendarDays, Monitor, ArrowRight } from 'lucide-react';
+import axios from 'axios';
+import { useAppContext } from '../../context/useAppContext';
+
+const typeLabels = {
+  student_registered: { label: 'New Student', badgeClass: 'badge-blue' },
+  attendance_marked:  { label: 'Attendance',  badgeClass: 'badge-amber' },
+  grade_published:    { label: 'Grade',        badgeClass: 'badge-green' },
+};
+
+const formatDate = (iso) => {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+};
 
 const AdminDashboard = () => {
+  const { backendUrl } = useAppContext();
+  const [activities, setActivities] = useState([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
+  const [activitiesError, setActivitiesError] = useState(null);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendUrl}/api/admin/dashboard/recent-activities`,
+          { withCredentials: true }
+        );
+        if (data.success) {
+          setActivities(data.activities);
+        } else {
+          setActivitiesError(data.message || 'Failed to load activities');
+        }
+      } catch (err) {
+        setActivitiesError(err.message);
+      } finally {
+        setActivitiesLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, [backendUrl]);
+
   return (
     <div className="page active" id="admin-dashboard">
       {/* ── Stat Row ── */}
@@ -32,56 +73,57 @@ const AdminDashboard = () => {
       </div>
 
       <div className="two-col">
-        {/* ── Recent Enrollments ── */}
+        {/* ── Recent Activities ── */}
         <div className="card">
           <div className="card-header">
-            <span className="card-title">Recent Enrollments</span>
+            <span className="card-title">Recent Activities</span>
             <button className="btn btn-sm cursor-pointer">
               <ArrowRight className="w-4 h-4 mr-1" /> View all
             </button>
           </div>
-          <table>
-            <thead>
-              <tr>
-                <th>STUDENT</th>
-                <th>COURSE</th>
-                <th>DATE</th>
-                <th>STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>R. Perera</td>
-                <td>CS301</td>
-                <td>May 15</td>
-                <td><span className="badge badge-green">Enrolled</span></td>
-              </tr>
-              <tr>
-                <td>A. Silva</td>
-                <td>MA201</td>
-                <td>May 14</td>
-                <td><span className="badge badge-green">Enrolled</span></td>
-              </tr>
-              <tr>
-                <td>K. Fernando</td>
-                <td>EN102</td>
-                <td>May 13</td>
-                <td><span className="badge badge-amber">Pending</span></td>
-              </tr>
-              <tr>
-                <td>N. Jayasena</td>
-                <td>CS401</td>
-                <td>May 12</td>
-                <td><span className="badge badge-green">Enrolled</span></td>
-              </tr>
-              <tr>
-                <td>S. Wickrama</td>
-                <td>CS301</td>
-                <td>May 11</td>
-                <td><span className="badge badge-blue">Processing</span></td>
-              </tr>
-            </tbody>
-          </table>
+
+          {activitiesLoading && (
+            <p style={{ padding: '16px', color: 'var(--muted)' }}>Loading activities…</p>
+          )}
+
+          {activitiesError && (
+            <p style={{ padding: '16px', color: 'var(--red)' }}>{activitiesError}</p>
+          )}
+
+          {!activitiesLoading && !activitiesError && activities.length === 0 && (
+            <p style={{ padding: '16px', color: 'var(--muted)' }}>No recent activities.</p>
+          )}
+
+          {!activitiesLoading && !activitiesError && activities.length > 0 && (
+            <table>
+              <thead>
+                <tr>
+                  <th>TYPE</th>
+                  <th>DESCRIPTION</th>
+                  <th>DATE</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities.map((activity, idx) => {
+                  const meta = typeLabels[activity.type] || { label: activity.type, badgeClass: 'badge-blue' };
+                  return (
+                    <tr key={idx}>
+                      <td><span className={`badge ${meta.badgeClass}`}>{meta.label}</span></td>
+                      <td>{activity.description}</td>
+                      <td>{formatDate(activity.date)}</td>
+                      <td>
+                        {activity.status
+                          ? <span className="badge badge-green">{activity.status}</span>
+                          : <span className="badge badge-green">Done</span>
+                        }
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* ── Attendance by Course ── */}
@@ -89,7 +131,7 @@ const AdminDashboard = () => {
           <div className="card-header">
             <span className="card-title">Attendance by Course</span>
           </div>
-          
+
           <div className="grade-bar-wrap" style={{ marginTop: '16px' }}>
             <div className="grade-bar-label">
               <span>CS301 — Software Engineering</span>
