@@ -32,7 +32,7 @@ const getTeacherContext = async (teacherId) => {
   };
 };
 
-const getTeacherCourses = async (req, res) => {
+const getTeacherCourses = async (req, res, next) => {
   try {
     const teacherId = getTeacherIdentifier(req);
 
@@ -57,15 +57,11 @@ const getTeacherCourses = async (req, res) => {
       courses: context.courses,
     });
   } catch (error) {
-    console.error('Error fetching teacher courses:', error);
-    return res.status(500).json({
-      message: 'Failed to fetch teacher courses',
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-const getStudentsForGrading = async (req, res) => {
+const getStudentsForGrading = async (req, res, next) => {
   try {
     const { courseId } = req.params;
 
@@ -89,11 +85,7 @@ const getStudentsForGrading = async (req, res) => {
       students,
     });
   } catch (error) {
-    console.error('Error fetching students for grading:', error);
-    return res.status(500).json({
-      message: 'Failed to fetch students for grading',
-      error: error.message,
-    });
+    next(error);
   }
 };
 
@@ -113,7 +105,7 @@ const buildRemarkForStudent = (remarks, studentId, index) => {
   return '';
 };
 
-const submitGrades = async (req, res) => {
+const submitGrades = async (req, res, next) => {
   try {
     const teacherId = getTeacherIdentifier(req);
     const { courseId, assessmentType, gradesData, remarks } = req.body;
@@ -202,15 +194,11 @@ const submitGrades = async (req, res) => {
       grades: savedGrades,
     });
   } catch (error) {
-    console.error('Error submitting grades:', error);
-    return res.status(500).json({
-      message: 'Failed to submit grades',
-      error: error.message,
-    });
+    next(error);
   }
 };
 
-const publishGrades = async (req, res) => {
+const publishGrades = async (req, res, next) => {
   try {
     const teacherId = getTeacherIdentifier(req);
     const { courseId, assessmentType } = req.body;
@@ -254,11 +242,7 @@ const publishGrades = async (req, res) => {
       publishedCount: result.modifiedCount ?? result.nModified ?? 0,
     });
   } catch (error) {
-    console.error('Error publishing grades:', error);
-    return res.status(500).json({
-      message: 'Failed to publish grades',
-      error: error.message,
-    });
+    next(error);
   }
 };
 

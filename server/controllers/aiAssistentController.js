@@ -37,7 +37,7 @@ const getOrCreateSession = async (userId, userRole) => {
    Body: { message: string }
    Auth: JWT cookie (req.user set by protect middleware)
 ───────────────────────────────────────────── */
-const sendChatMessage = async (req, res) => {
+const sendChatMessage = async (req, res, next) => {
     try {
         const { id: userId, role } = req.user;
         const { message } = req.body;
@@ -74,8 +74,7 @@ const sendChatMessage = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[AI Chat] sendChatMessage error:', error);
-        return res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
@@ -84,7 +83,7 @@ const sendChatMessage = async (req, res) => {
    GET /api/ai-assistent/history
    Auth: JWT cookie
 ───────────────────────────────────────────── */
-const getChatHistory = async (req, res) => {
+const getChatHistory = async (req, res, next) => {
     try {
         const { id: userId, role } = req.user;
 
@@ -104,8 +103,7 @@ const getChatHistory = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[AI Chat] getChatHistory error:', error);
-        return res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
@@ -115,7 +113,7 @@ const getChatHistory = async (req, res) => {
    Auth: JWT cookie
    Creates a fresh session document (old history is preserved in DB but ignored).
 ───────────────────────────────────────────── */
-const startNewSession = async (req, res) => {
+const startNewSession = async (req, res, next) => {
     try {
         const { id: userId, role } = req.user;
 
@@ -133,8 +131,7 @@ const startNewSession = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[AI Chat] startNewSession error:', error);
-        return res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
@@ -144,7 +141,7 @@ const startNewSession = async (req, res) => {
    Auth: JWT cookie
    Fetches live stats without sending a chat message.
 ───────────────────────────────────────────── */
-const getAIContext = async (req, res) => {
+const getAIContext = async (req, res, next) => {
     try {
         const { id: userId, role } = req.user;
 
@@ -153,8 +150,7 @@ const getAIContext = async (req, res) => {
         return res.json({ success: true, sidebarStats });
 
     } catch (error) {
-        console.error('[AI Chat] getAIContext error:', error);
-        return res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
