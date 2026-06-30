@@ -9,9 +9,7 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "lint": "eslint .",
-    "test": "jest --forceExit --detectOpenHandles",
-    "test:coverage": "jest --coverage --forceExit --detectOpenHandles"
+    "lint": "eslint ."
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
