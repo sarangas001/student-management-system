@@ -172,3 +172,5 @@ app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
+module.exports.authLimiter = authLimiter;
+module.exports.globalLimiter = globalLimiter;

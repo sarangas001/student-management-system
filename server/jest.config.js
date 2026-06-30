@@ -11,7 +11,7 @@ module.exports = {
         'utils/**/*.js',
         '!**/*.config.*',
     ],
-    coverageThresholds: {
+    coverageThreshold: {
         global: { lines: 50 },
     },
     testTimeout: 10000,
