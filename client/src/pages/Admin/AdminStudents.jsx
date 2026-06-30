@@ -1,7 +1,12 @@
-import {Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
+import { useAppContext } from '../../context/useAppContext';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 export const AdminStudents = () => {
+  const { backendUrl } = useAppContext();
+
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDepartment, setSelectedDepartment] = useState('');
@@ -13,55 +18,138 @@ export const AdminStudents = () => {
   
   // Form State
   const [formData, setFormData] = useState({
+    _id: '',
     id: '',
     name: '',
     email: '',
-    department: 'Computing',
-    year: '1st Year',
-    status: 'Active'
+    department: 'SE',
+    year: '1',
+    status: 'Active',
+    password: ''
   });
   
   const [isEditing, setIsEditing] = useState(false);
 
-  // Simulated backend API calls
+  // API calls using axios and backendUrl
   const fetchStudents = async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          { id: 'FC222010', name: 'R.A.D.S. Methmini', department: 'SE', year: '1', email: 'methmini@usj.ac.lk', status: 'Active' },
-          { id: 'FC222015', name: 'K.G.A.K. Sathsarani', department: 'SE', year: '1', email: 'sathsarani@usj.ac.lk', status: 'Active' },
-          { id: 'FC222016', name: 'R.D.R.P. Ranasinghe', department: 'IS', year: '2', email: 'ranasinghe@usj.ac.lk', status: 'Active' },
-          { id: 'FC222022', name: 'M.A. Samarakoon', department: 'CS', year: '1', email: 'samarakoon@usj.ac.lk', status: 'On Leave' },
-          { id: 'FC222032', name: 'R.S. Daraniyagala', department: 'SE', year: '3', email: 'daraniyagala@usj.ac.lk', status: 'Active' },
-          { id: 'FC222038', name: 'N.G.N.S. Niralgama', department: 'CS', year: '3', email: 'niralgama@usj.ac.lk', status: 'Active' },
-          { id: 'FC222039', name: 'G.A.L.H. Seneviratne', department: 'CS', year: '2', email: 'seneviratne@usj.ac.lk', status: 'Active' }
-        ]);
-      }, 2000);
-    });
+    try {
+      const response = await axios.get(`${backendUrl}/api/admin/students`, {
+        withCredentials: true
+      });
+      if (response.data && response.data.success) {
+        return response.data.data.map(student => ({
+          _id: student._id,
+          id: student.studentId,
+          name: `${student.firstName} ${student.lastName}`,
+          email: student.email,
+          department: student.department,
+          year: student.yearOfStudy ? String(student.yearOfStudy) : '1',
+          status: 'Active'
+        }));
+      }
+      return [];
+    } catch (error) {
+      console.error("Error fetching students:", error);
+      return [];
+    }
   };
 
   const addStudentAPI = async (studentData) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true, data: studentData });
-      }, 500);
-    });
+    try {
+      const nameParts = studentData.name.trim().split(' ');
+      const firstName = nameParts[0] || 'Student';
+      const lastName = nameParts.slice(1).join(' ') || 'Name';
+
+      const payload = {
+        studentId: studentData.id,
+        firstName,
+        lastName,
+        email: studentData.email,
+        password: studentData.password || 'tempPassword123',
+        department: studentData.department,
+        yearOfStudy: Number(studentData.year)
+      };
+
+      const response = await axios.post(`${backendUrl}/api/admin/students`, payload, {
+        withCredentials: true
+      });
+
+      if (response.data && response.data.success) {
+        const newStudent = response.data.data;
+        return {
+          success: true,
+          data: {
+            _id: newStudent._id,
+            id: newStudent.studentId,
+            name: `${newStudent.firstName} ${newStudent.lastName}`,
+            email: newStudent.email,
+            department: newStudent.department,
+            year: newStudent.yearOfStudy ? String(newStudent.yearOfStudy) : '1',
+            status: 'Active'
+          }
+        };
+      }
+      return { success: false };
+    } catch (error) {
+      console.error("Error adding student:", error);
+      toast.error(error.response?.data?.message || "Failed to add student");
+      return { success: false };
+    }
   };
 
   const updateStudentAPI = async (studentData) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true, data: studentData });
-      }, 500);
-    });
+    try {
+      const nameParts = studentData.name.trim().split(' ');
+      const firstName = nameParts[0] || 'Student';
+      const lastName = nameParts.slice(1).join(' ') || 'Name';
+
+      const payload = {
+        studentId: studentData.id,
+        firstName,
+        lastName,
+        email: studentData.email,
+        department: studentData.department,
+        yearOfStudy: Number(studentData.year)
+      };
+
+      const response = await axios.put(`${backendUrl}/api/admin/students/${studentData._id}`, payload, {
+        withCredentials: true
+      });
+
+      if (response.data && response.data.success) {
+        const updatedStudent = response.data.data;
+        return {
+          success: true,
+          data: {
+            _id: updatedStudent._id,
+            id: updatedStudent.studentId,
+            name: `${updatedStudent.firstName} ${updatedStudent.lastName}`,
+            email: updatedStudent.email,
+            department: updatedStudent.department,
+            year: updatedStudent.yearOfStudy ? String(updatedStudent.yearOfStudy) : '1',
+            status: 'Active'
+          }
+        };
+      }
+      return { success: false };
+    } catch (error) {
+      console.error("Error updating student:", error);
+      toast.error(error.response?.data?.message || "Failed to update student");
+      return { success: false };
+    }
   };
 
-  const deleteStudentAPI = async (id) => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true, id });
-      }, 500);
-    });
+  const deleteStudentAPI = async (dbId) => {
+    try {
+      const response = await axios.delete(`${backendUrl}/api/admin/students/${dbId}`, {
+        withCredentials: true
+      });
+      return { success: response.data && response.data.success };
+    } catch (error) {
+      console.error("Error deleting student:", error);
+      toast.error(error.response?.data?.message || "Failed to delete student");
+      return { success: false };
+    }
   };
 
   useEffect(() => {
@@ -72,8 +160,10 @@ export const AdminStudents = () => {
       setLoading(false);
     };
 
-    loadData();
-  }, []);
+    if (backendUrl) {
+      loadData();
+    }
+  }, [backendUrl]);
 
   const filteredStudents = useMemo(() => {
     return students.filter((student) => {
@@ -95,12 +185,14 @@ export const AdminStudents = () => {
   const openAddModal = () => {
     setIsEditing(false);
     setFormData({
+      _id: '',
       id: '',
       name: '',
       email: '',
       department: 'SE',
-      year: '1st Year',
-      status: 'Active'
+      year: '1',
+      status: 'Active',
+      password: ''
     });
     setShowModal(true);
   };
@@ -109,15 +201,21 @@ export const AdminStudents = () => {
     const studentToEdit = students.find(s => s.id === id);
     if (studentToEdit) {
       setIsEditing(true);
-      setFormData(studentToEdit);
+      setFormData({
+        ...studentToEdit,
+        password: ''
+      });
       setShowModal(true);
     }
   };
 
-  const handleDeleteStudent = async (id) => {
-    if (window.confirm('Are you sure you want to delete this student?')) {
-      await deleteStudentAPI(id);
-      setStudents(prev => prev.filter(s => s.id !== id));
+  const handleDeleteStudent = async (student) => {
+    if (window.confirm(`Are you sure you want to delete student ${student.name}?`)) {
+      const result = await deleteStudentAPI(student._id);
+      if (result.success) {
+        setStudents(prev => prev.filter(s => s.id !== student.id));
+        toast.success(`Student ${student.name} deleted successfully!`);
+      }
     }
   };
 
@@ -125,15 +223,18 @@ export const AdminStudents = () => {
     if (isEditing) {
       const result = await updateStudentAPI(formData);
       if (result.success) {
-        setStudents(prev => prev.map(s => s.id === formData.id ? formData : s));
+        setStudents(prev => prev.map(s => s.id === formData.id ? result.data : s));
+        setShowModal(false);
+        toast.success("Student updated successfully!");
       }
     } else {
       const result = await addStudentAPI(formData);
       if (result.success) {
-        setStudents(prev => [...prev, formData]);
+        setStudents(prev => [...prev, result.data]);
+        setShowModal(false);
+        toast.success("Student added successfully!");
       }
     }
-    setShowModal(false);
   };
 
   return (
@@ -199,23 +300,23 @@ export const AdminStudents = () => {
                     <td>{student.id}</td>
                     <td>{student.name}</td>
                     <td>{student.department}</td>
-                    <td>{student.year}</td>
-                  <td>{student.email}</td>
-                  <td>
-                    <span className={`badge ${student.status === 'Active' ? 'badge-green' : 'badge-amber'}`}>
-                      {student.status}
-                    </span>
-                  </td>
-                  <td className='flex gap-2 items-center'>
-                    <button className="btn btn-sm cursor-pointer" onClick={() => handleEditStudent(student.id)}>
-                      <Edit className='w-4 h-4 text-blue-500' />
-                    </button>
-                    <button className="btn btn-sm cursor-pointer" onClick={() => handleDeleteStudent(student.id)}>
-                      <Trash2 className='w-4 h-4 text-red-500' />
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    <td>{student.year === '1' ? '1st Year' : student.year === '2' ? '2nd Year' : student.year === '3' ? '3rd Year' : `${student.year}th Year`}</td>
+                    <td>{student.email}</td>
+                    <td>
+                      <span className={`badge ${student.status === 'Active' ? 'badge-green' : 'badge-amber'}`}>
+                        {student.status}
+                      </span>
+                    </td>
+                    <td className='flex gap-2 items-center'>
+                      <button className="btn btn-sm cursor-pointer" onClick={() => handleEditStudent(student.id)}>
+                        <Edit className='w-4 h-4 text-blue-500' />
+                      </button>
+                      <button className="btn btn-sm cursor-pointer" onClick={() => handleDeleteStudent(student)}>
+                        <Trash2 className='w-4 h-4 text-red-500' />
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )
             )}
           </tbody>
@@ -288,6 +389,15 @@ export const AdminStudents = () => {
                 </select>
               </div>
             </div>
+
+            {!isEditing && (
+              <div className="form-row">
+                <div className="form-group" style={{ width: '100%' }}>
+                  <label>Password</label>
+                  <input type="password" name="password" value={formData.password} onChange={handleInputChange} placeholder="Enter password" />
+                </div>
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
               <button className="btn btn-primary cursor-pointer" onClick={handleSaveStudent}>
