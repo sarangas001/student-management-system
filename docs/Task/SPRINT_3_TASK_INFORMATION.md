@@ -41,27 +41,34 @@ The goal is to verify:
 
 ### Module Testing
 
-#### Admin Students
+#### Admin AI Assistant
 
-* Verify student list loads correctly
-* Verify search functionality
-* Verify department filtering
-* Verify year filtering
-* Verify add student functionality
-* Verify edit student functionality
-* Verify delete student functionality
-* Verify validation messages
+* Verify chat interface loading
+* Verify message sending
+* Verify AI responses
+* Verify conversation history
+* Verify loading indicators
+* Verify error handling
 * Verify responsive behavior
 
-#### Admin Attendance
+#### Teacher AI Assistant
 
-* Verify course dropdown loading
-* Verify attendance records loading
-* Verify date selection functionality
-* Verify attendance marking process
-* Verify attendance saving process
-* Verify attendance summary display
-* Verify validation handling
+* Verify chat interface loading
+* Verify message sending
+* Verify AI responses
+* Verify conversation history
+* Verify loading indicators
+* Verify error handling
+* Verify responsive behavior
+
+#### Student AI Assistant
+
+* Verify chat interface loading
+* Verify message sending
+* Verify AI responses
+* Verify conversation history
+* Verify loading indicators
+* Verify error handling
 * Verify responsive behavior
 
 ---
@@ -209,35 +216,29 @@ The goal is to verify:
 
 ### Module Testing
 
-#### Admin AI Assistant
+#### Admin Students
 
-* Verify chat interface loading
-* Verify message sending
-* Verify AI responses
-* Verify conversation history
-* Verify loading indicators
-* Verify error handling
+* Verify student list loads correctly
+* Verify search functionality
+* Verify department filtering
+* Verify year filtering
+* Verify add student functionality
+* Verify edit student functionality
+* Verify delete student functionality
+* Verify validation messages
 * Verify responsive behavior
 
-#### Teacher AI Assistant
+#### Admin Attendance
 
-* Verify chat interface loading
-* Verify message sending
-* Verify AI responses
-* Verify conversation history
-* Verify loading indicators
-* Verify error handling
+* Verify course dropdown loading
+* Verify attendance records loading
+* Verify date selection functionality
+* Verify attendance marking process
+* Verify attendance saving process
+* Verify attendance summary display
+* Verify validation handling
 * Verify responsive behavior
 
-#### Student AI Assistant
-
-* Verify chat interface loading
-* Verify message sending
-* Verify AI responses
-* Verify conversation history
-* Verify loading indicators
-* Verify error handling
-* Verify responsive behavior
 
 ---
 
