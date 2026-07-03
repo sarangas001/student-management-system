@@ -38,25 +38,26 @@ const TeacherEnterGrades = () => {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState('');
   const [assessmentType, setAssessmentType] = useState(ASSESSMENT_TYPES[0].id);
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState(null);
   const [scores, setScores] = useState({});
   const [remarks, setRemarks] = useState({});
   const [loading, setLoading] = useState(true);
-  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [authError, setAuthError] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState(null);
 
   // Step 1: fetch teacher profile on mount
   useEffect(() => {
-    axios.get(`${backendUrl}/api/auth/isLoggedIn`, { withCredentials: true })
+    axios.get(`${backendUrl}/api/auth/isLoggedIn`, { withCredentials: true, timeout: 10000 })
       .then(({ data }) => {
-        if (data.success && data.role === 'teacher' && data.user) {
+        if (data.success && data.role === 'teacher' && data.user && data.user.teacherId) {
           setTeacherId(data.user.teacherId);
         } else {
+          setAuthError(true);
           setLoading(false);
         }
       })
-      .catch(() => setLoading(false));
+      .catch(() => { setAuthError(true); setLoading(false); });
   }, [backendUrl]);
 
   // Step 2: fetch assigned courses once teacherId is known
@@ -65,7 +66,8 @@ const TeacherEnterGrades = () => {
     let active = true;
     axios.get(`${backendUrl}/api/teacher/grades/courses`, {
       params: { teacherId },
-      withCredentials: true
+      withCredentials: true,
+      timeout: 10000
     }).then(({ data }) => {
       if (active) {
         const list = data.courses || [];
@@ -92,9 +94,8 @@ const TeacherEnterGrades = () => {
         list.forEach(s => { initScores[s._id] = ''; initRemarks[s._id] = ''; });
         setScores(initScores);
         setRemarks(initRemarks);
-        setStudentsLoading(false);
       }
-    }).catch(() => { if (active) setStudentsLoading(false); });
+    }).catch(() => { if (active) setStudents([]); });
     return () => { active = false; };
   }, [backendUrl, selectedCourse]);
 
@@ -168,6 +169,14 @@ const TeacherEnterGrades = () => {
     );
   }
 
+  if (authError) {
+    return (
+      <div style={{ backgroundColor: '#f0f4f8', minHeight: '100vh', padding: '32px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <p style={{ color: '#ef4444' }}>Please log in as a teacher to view grades.</p>
+      </div>
+    );
+  }
+
   return (
     <div style={{ backgroundColor: '#f0f4f8', minHeight: '100vh', padding: '32px' }}>
       <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '32px', width: '100%' }}>
@@ -177,14 +186,14 @@ const TeacherEnterGrades = () => {
         </h2>
 
         {/* Controls Row */}
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', alignItems: 'flex-start', width: '100%', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-start', width: '100%', marginBottom: '24px' }}>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '0 0 58%' }}>
             <label style={{ fontSize: '13px', fontWeight: '500', color: '#374151' }} htmlFor="course-select">Course</label>
             <select
               id="course-select"
               value={selectedCourse}
-              onChange={(e) => { setSelectedCourse(e.target.value); setStatusMsg(null); }}
+              onChange={(e) => { setSelectedCourse(e.target.value); setStudents(null); setScores({}); setRemarks({}); setStatusMsg(null); }}
               style={{ width: '100%', padding: '9px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px', color: '#111827', backgroundColor: '#ffffff', outline: 'none', cursor: 'pointer', fontFamily: 'inherit' }}
             >
               {courses.length === 0
@@ -209,12 +218,12 @@ const TeacherEnterGrades = () => {
 
         {/* Grades Table */}
         <div style={{ width: '100%', overflowX: 'auto' }}>
-          {studentsLoading ? (
+          {courses.length === 0 ? (
+            <p style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>No courses assigned to your account.</p>
+          ) : students === null ? (
             <p style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>Loading student list...</p>
           ) : students.length === 0 ? (
-            <p style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
-              {courses.length === 0 ? 'No courses assigned to your account.' : 'No students enrolled in this course.'}
-            </p>
+            <p style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>No students enrolled in this course.</p>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
@@ -273,7 +282,7 @@ const TeacherEnterGrades = () => {
         )}
 
         {/* Action Buttons */}
-        {!studentsLoading && students.length > 0 && (
+        {students !== null && students.length > 0 && (
           <div style={{ marginTop: '24px', display: 'flex', gap: '12px' }}>
             <button onClick={handleSaveDraft} disabled={actionLoading}
               style={{ padding: '11px 24px', backgroundColor: '#ffffff', color: '#374151', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', fontFamily: 'inherit', opacity: actionLoading ? 0.7 : 1 }}>
