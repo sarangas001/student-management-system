@@ -21,19 +21,24 @@ const TeacherAttendance = () => {
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
+  const [messageType, setMessageType] = useState('success')
+  const [loadingCourses, setLoadingCourses] = useState(true)
+  const [loadingStudents, setLoadingStudents] = useState(false)
 
-  // Get logged-in teacher profile
+  // Step 1: Get logged-in teacher profile
   useEffect(() => {
     axios.get(`${backendUrl}/api/auth/isLoggedIn`, { withCredentials: true })
       .then(({ data }) => {
         if (data.success && data.role === 'teacher' && data.user) {
           setTeacherId(data.user.teacherId)
+        } else {
+          setLoadingCourses(false)
         }
       })
-      .catch(console.error)
+      .catch(() => setLoadingCourses(false))
   }, [backendUrl])
 
-  // Fetch teacher's assigned courses
+  // Step 2: Fetch teacher's assigned courses
   useEffect(() => {
     if (!teacherId) return
     let active = true
@@ -45,11 +50,12 @@ const TeacherAttendance = () => {
         setCourses(data)
         setSelectedCourse(data[0])
       }
-    }).catch(console.error)
+      if (active) setLoadingCourses(false)
+    }).catch(() => { if (active) setLoadingCourses(false) })
     return () => { active = false }
   }, [backendUrl, teacherId])
 
-  // Fetch enrolled students when course changes
+  // Step 3: Fetch class roster when course changes
   useEffect(() => {
     if (!selectedCourse) return
     let active = true
@@ -63,8 +69,9 @@ const TeacherAttendance = () => {
         setAttendance(initial)
         setSubmitted(false)
         setMessage('')
+        setLoadingStudents(false)
       }
-    }).catch(console.error)
+    }).catch(() => { if (active) setLoadingStudents(false) })
     return () => { active = false }
   }, [backendUrl, selectedCourse])
 
@@ -72,6 +79,7 @@ const TeacherAttendance = () => {
     const course = courses.find(c => c._id === e.target.value)
     setSelectedCourse(course || null)
     setSubmitted(false)
+    setMessage('')
   }
 
   const handleAttendanceChange = (studentId, status) => {
@@ -88,13 +96,30 @@ const TeacherAttendance = () => {
   }
 
   const handleSubmit = () => {
-    if (!selectedCourse || !teacherId) return
+    if (!selectedCourse) {
+      setMessageType('error')
+      setMessage('Please select a course.')
+      return
+    }
+    if (!date) {
+      setMessageType('error')
+      setMessage('Please select a date.')
+      return
+    }
+    if (students.length === 0) {
+      setMessageType('error')
+      setMessage('No students to mark attendance for.')
+      return
+    }
+
     setSubmitting(true)
     setMessage('')
+
     const attendanceData = students.map(s => ({
       studentId: s.studentId,
       status: attendance[s.studentId] || 'Present'
     }))
+
     axios.post(`${backendUrl}/api/teacher/attendance`, {
       courseId: selectedCourse._id,
       teacherId,
@@ -103,96 +128,96 @@ const TeacherAttendance = () => {
     }, { withCredentials: true })
       .then(({ data }) => {
         setSubmitted(true)
-        setMessage(`Attendance submitted: ${data.totalRecords} record(s) saved.`)
+        setMessageType('success')
+        setMessage(`Attendance saved: ${data.totalRecords} record(s) updated for ${selectedCourse.code} on ${date}.`)
       })
-      .catch(() => setMessage('Error submitting attendance.'))
+      .catch(() => {
+        setMessageType('error')
+        setMessage('Error submitting attendance. Please try again.')
+      })
       .finally(() => setSubmitting(false))
   }
 
+  const inputStyle = {
+    width: '100%', padding: '9px 12px', border: '1px solid #d1d5db',
+    borderRadius: '6px', fontSize: '14px', color: '#111827',
+    backgroundColor: '#ffffff', outline: 'none', cursor: 'pointer', fontFamily: 'inherit'
+  }
+
+  if (loadingCourses) {
+    return (
+      <div style={{ backgroundColor: '#f0f4f8', minHeight: '100vh', padding: '32px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <p style={{ color: '#64748b' }}>Loading courses...</p>
+      </div>
+    )
+  }
+
   return (
-    <div style={{ backgroundColor: '#f0f4f8', minHeight: '100vh', padding: '32px' }}>
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '32px', width: '100%' }}>
+    <div style={{ backgroundColor: '#f0f4f8', minHeight: '100vh', padding: '16px' }}>
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '12px', padding: '24px', width: '100%', boxSizing: 'border-box' }}>
 
         <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', marginBottom: '24px' }}>
           Mark Attendance
         </h2>
 
-        {/* Controls Row: Course + Date */}
-        <div style={{ display: 'flex', flexDirection: 'row', gap: '16px', alignItems: 'flex-start', width: '100%', marginBottom: '24px' }}>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '0 0 58%' }}>
+        {/* Controls Row - responsive with flexWrap */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1 1 55%', minWidth: '200px' }}>
             <label style={{ fontSize: '13px', fontWeight: '500', color: '#374151' }} htmlFor="course-select">
               Select Course
             </label>
-            <select
-              id="course-select"
-              value={selectedCourse?._id || ''}
-              onChange={handleCourseChange}
-              style={{
-                width: '100%', padding: '9px 12px', border: '1px solid #d1d5db',
-                borderRadius: '6px', fontSize: '14px', color: '#111827',
-                backgroundColor: '#ffffff', outline: 'none', cursor: 'pointer', fontFamily: 'inherit'
-              }}
-            >
+            <select id="course-select" value={selectedCourse?._id || ''} onChange={handleCourseChange} style={inputStyle}>
               {courses.length === 0
                 ? <option>No courses assigned</option>
-                : courses.map(c => (
-                    <option key={c._id} value={c._id}>{c.code} — {c.name}</option>
-                  ))
+                : courses.map(c => <option key={c._id} value={c._id}>{c.code} — {c.name}</option>)
               }
             </select>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '0 0 40%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1 1 35%', minWidth: '160px' }}>
             <label style={{ fontSize: '13px', fontWeight: '500', color: '#374151' }} htmlFor="date-input">
               Date
             </label>
             <input
-              id="date-input"
-              type="date"
-              value={date}
+              id="date-input" type="date" value={date}
               onChange={(e) => { setDate(e.target.value); setSubmitted(false) }}
-              style={{
-                width: '100%', padding: '9px 12px', border: '1px solid #d1d5db',
-                borderRadius: '6px', fontSize: '14px', color: '#111827',
-                backgroundColor: '#ffffff', outline: 'none', fontFamily: 'inherit', cursor: 'pointer'
-              }}
+              style={inputStyle}
             />
           </div>
         </div>
 
         {/* Attendance Table */}
-        <div className="table-wrapper">
-          {students.length === 0 ? (
+        <div style={{ overflowX: 'auto' }}>
+          {loadingStudents ? (
+            <p style={{ padding: '16px', color: '#6b7280' }}>Loading students...</p>
+          ) : students.length === 0 ? (
             <p style={{ padding: '16px', color: '#6b7280' }}>
-              {selectedCourse ? 'No students enrolled in this course.' : 'Select a course to load students.'}
+              {courses.length === 0 ? 'No courses assigned to your account.' : 'No students enrolled in this course.'}
             </p>
           ) : (
-            <table className="attendance-table">
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  <th className="col-id">Student ID</th>
-                  <th className="col-name">Name</th>
-                  <th className="col-status">Present</th>
-                  <th className="col-status">Absent</th>
-                  <th className="col-status">Late</th>
+                  {['Student ID', 'Name', 'Present', 'Absent', 'Late'].map(h => (
+                    <th key={h} style={{ textAlign: h === 'Student ID' || h === 'Name' ? 'left' : 'center', padding: '10px 12px', fontSize: '12px', fontWeight: '600', color: '#6b7280', borderBottom: '1px solid #e5e7eb', textTransform: 'uppercase' }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {students.map(student => (
-                  <tr key={student.studentId} className="student-row">
-                    <td className="col-id student-id">{student.studentId}</td>
-                    <td className="col-name student-name">{student.firstName} {student.lastName}</td>
+                  <tr key={student.studentId} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                    <td style={{ padding: '12px', fontSize: '14px', color: '#374151' }}>{student.studentId}</td>
+                    <td style={{ padding: '12px', fontSize: '14px', color: '#111827', fontWeight: '500' }}>{student.firstName} {student.lastName}</td>
                     {['Present', 'Absent', 'Late'].map(status => (
-                      <td key={status} className="col-status">
+                      <td key={status} style={{ padding: '12px', textAlign: 'center' }}>
                         <input
                           type="radio"
                           name={`attendance-${student.studentId}`}
                           value={status}
                           checked={attendance[student.studentId] === status}
                           onChange={() => handleAttendanceChange(student.studentId, status)}
-                          className="radio-input"
                           aria-label={`Mark ${student.firstName} ${status}`}
+                          style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                         />
                       </td>
                     ))}
@@ -203,19 +228,32 @@ const TeacherAttendance = () => {
           )}
         </div>
 
-        {/* Feedback */}
-        {(submitted || message) && (
-          <div className="success-message" style={{ color: message.includes('Error') ? '#dc2626' : undefined }}>
-            {message || `✅ Attendance submitted for ${selectedCourse?.code} on ${date}.`}
+        {/* Feedback message */}
+        {message && (
+          <div style={{
+            marginTop: '16px', padding: '12px 16px', borderRadius: '8px',
+            backgroundColor: messageType === 'success' ? '#f0fdf4' : '#fef2f2',
+            border: `1px solid ${messageType === 'success' ? '#86efac' : '#fca5a5'}`,
+            color: messageType === 'success' ? '#166534' : '#991b1b',
+            fontSize: '14px'
+          }}>
+            {submitted && messageType === 'success' ? '✅ ' : ''}{message}
           </div>
         )}
 
         {/* Buttons */}
-        <div className="actions-row" style={{ display: 'flex', flexDirection: 'row', gap: '8px', alignItems: 'center', marginTop: '24px' }}>
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={submitting || students.length === 0}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
+          <button
+            className="btn btn-primary"
+            onClick={handleSubmit}
+            disabled={submitting || students.length === 0 || !teacherId}
+            style={{ opacity: (submitting || students.length === 0) ? 0.6 : 1 }}
+          >
             {submitting ? 'Submitting…' : '✔ Submit Attendance'}
           </button>
-          <button className="btn btn-secondary" onClick={handleReset}>↺ Reset</button>
+          <button className="btn btn-secondary" onClick={handleReset} disabled={students.length === 0}>
+            ↺ Reset
+          </button>
         </div>
 
       </div>
