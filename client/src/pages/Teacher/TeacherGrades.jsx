@@ -81,7 +81,6 @@ const TeacherEnterGrades = () => {
   useEffect(() => {
     if (!selectedCourse) return;
     let active = true;
-    setStudentsLoading(true);
     axios.get(`${backendUrl}/api/teacher/grades/students/${selectedCourse}`, {
       withCredentials: true
     }).then(({ data }) => {
