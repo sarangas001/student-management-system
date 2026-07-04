@@ -1,8 +1,8 @@
-const getStudentAttendanceSummary = async (req, res) => {
+const getStudentAttendanceSummary = async (_req, _res) => {
 
 };
 
-const getStudentAttendanceDetails = async (req, res) => {
+const getStudentAttendanceDetails = async (_req, _res) => {
   
 };
 
