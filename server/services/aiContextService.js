@@ -1,6 +1,6 @@
 const Student = require('../module/studentModel');
 const Teacher = require('../module/teacherModel');
-const Admin = require('../module/adminModel');
+const _Admin = require('../module/adminModel');
 const Course = require('../module/courseModel');
 const Grade = require('../module/gradeModel');
 const Attendance = require('../module/attendanceModel');
@@ -162,7 +162,7 @@ const buildTeacherContext = async (userId) => {
     });
 
     // At-risk count (below 75% in any of teacher's courses)
-    let atRiskSet = new Set();
+    const atRiskSet = new Set();
     students.forEach(s => {
         courses.forEach(c => {
             const att = attMap[`${String(s._id)}_${c.code}`];
