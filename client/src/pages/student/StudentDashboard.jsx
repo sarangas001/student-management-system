@@ -1,140 +1,139 @@
+const Student = require("../module/studentModel");
+const Course = require("../module/courseModel");
+const Grade = require("../module/gradeModel");
+const Attendance = require("../module/attendanceModel");
 
-import {
-  BookOpen,
-  CalendarCheck,
-  BarChart3,
-  AlertCircle,
-  Megaphone,
-  TriangleAlert,
-} from "lucide-react";
+// Dashboard Statistics
+const getStudentDashboardStats = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
 
-const StudentDashboard = () => {
-  return (
-    <>
-      {/* Stats Row */}
-      <div className="stat-row">
-        <div className="stat-card">
-          <div className="stat-icon si-blue">
-            <BookOpen size={18} />
-          </div>
-          <div className="stat-label">Enrolled Courses</div>
-          <div className="stat-val">5</div>
-        </div>
+    const student = await Student.findById(studentId)
+      .select("-password")
+      .populate("enrolledCourses", "code name credits department");
 
-        <div className="stat-card">
-          <div className="stat-icon si-green">
-            <CalendarCheck size={18} />
-          </div>
-          <div className="stat-label">My Attendance</div>
-          <div className="stat-val">88%</div>
-        </div>
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
 
-        <div className="stat-card">
-          <div className="stat-icon si-amber">
-            <BarChart3 size={18} />
-          </div>
-          <div className="stat-label">Current GPA</div>
-          <div className="stat-val">3.6</div>
-        </div>
+    const courseIds = student.enrolledCourses.map((course) => course._id);
 
-        <div className="stat-card">
-          <div className="stat-icon si-red">
-            <AlertCircle size={18} />
-          </div>
-          <div className="stat-label">Pending Tasks</div>
-          <div className="stat-val">2</div>
-        </div>
-      </div>
+    const [grades, attendanceRecords] = await Promise.all([
+      Grade.find({
+        student: studentId,
+        published: true,
+      }),
 
-      {/* Bottom Section */}
-      <div className="two-col">
-        {/* Courses */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">My Enrolled Courses</div>
-          </div>
+      Attendance.find({
+        student: studentId,
+        course: { $in: courseIds },
+      }).select("course status"),
+    ]);
 
-          <table>
-            <thead>
-              <tr>
-                <th>CODE</th>
-                <th>COURSE</th>
-                <th>TEACHER</th>
-                <th>STATUS</th>
-              </tr>
-            </thead>
+    const totalClasses = attendanceRecords.length;
 
-            <tbody>
-              <tr>
-                <td>CS301</td>
-                <td>Software Engineering</td>
-                <td>Dr. Gunawardena</td>
-                <td>
-                  <span className="badge badge-green">On Track</span>
-                </td>
-              </tr>
+    const presentClasses = attendanceRecords.filter(
+      (record) => record.status === "Present"
+    ).length;
 
-              <tr>
-                <td>CS401</td>
-                <td>Data Structures</td>
-                <td>Ms. Perera</td>
-                <td>
-                  <span className="badge badge-blue">On Track</span>
-                </td>
-              </tr>
+    const attendancePercentage =
+      totalClasses > 0
+        ? Math.round((presentClasses / totalClasses) * 100)
+        : 0;
 
-              <tr>
-                <td>MA201</td>
-                <td>Mathematics II</td>
-                <td>Dr. Bandara</td>
-                <td>
-                  <span className="badge badge-amber">At Risk</span>
-                </td>
-              </tr>
+    const gpa =
+      grades.length > 0
+        ? (
+            grades.reduce(
+              (sum, grade) => sum + (grade.gradePoint || 0),
+              0
+            ) / grades.length
+          ).toFixed(2)
+        : 0;
 
-              <tr>
-                <td>EN102</td>
-                <td>Technical English</td>
-                <td>Ms. Kumari</td>
-                <td>
-                  <span className="badge badge-green">On Track</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+    const courses = student.enrolledCourses.map((course) => {
+      const records = attendanceRecords.filter(
+        (a) => a.course.toString() === course._id.toString()
+      );
 
-        {/* Announcements */}
-        <div className="card">
-          <div className="card-header">
-            <div className="card-title">Announcements</div>
-          </div>
+      const present = records.filter(
+        (r) => r.status === "Present"
+      ).length;
 
-          <div className="alert alert-blue">
-            <Megaphone size={16} />
-            <span>
-              CS301 Mid-exam scheduled for May 24. Review chapters 4–8.
-            </span>
-          </div>
+      const percentage =
+        records.length > 0
+          ? (present / records.length) * 100
+          : 100;
 
-          <div className="alert alert-green">
-            <Megaphone size={16} />
-            <span>
-              Assignment 2 for CS401 due May 20. Submit via GitHub repository.
-            </span>
-          </div>
+      return {
+        _id: course._id,
+        code: course.code,
+        name: course.name,
+        department: course.department,
+        status: percentage >= 75 ? "On Track" : "At Risk",
+      };
+    });
 
-          <div className="alert alert-amber">
-            <TriangleAlert size={16} />
-            <span>
-              MA201 attendance is below 75%. Attend regularly to avoid
-              penalty.
-            </span>
-          </div>
-        </div>
-      </div>
-    </>
-  );
+    return res.status(200).json({
+      success: true,
+      data: {
+        student: {
+          firstName: student.firstName,
+          lastName: student.lastName,
+          studentId: student.studentId,
+          department: student.department,
+          yearOfStudy: student.yearOfStudy,
+        },
+
+        courses,
+
+        stats: {
+          totalCourses: courseIds.length,
+          attendancePercentage,
+          gpa,
+          pendingTasks: 0,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-export default StudentDashboard;
+// Upcoming Classes
+const getUpcomingClasses = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
+
+    const student = await Student.findById(studentId).select(
+      "enrolledCourses"
+    );
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found",
+      });
+    }
+
+    const courses = await Course.find({
+      _id: { $in: student.enrolledCourses },
+      status: "Active",
+    }).select("code name department credits");
+
+    return res.status(200).json({
+      success: true,
+      data: courses,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getStudentDashboardStats,
+  getUpcomingClasses,
+};
