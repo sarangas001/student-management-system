@@ -4,5 +4,6 @@ const adminDashboardController = require('../controllers/adminDashboardControlle
 
 router.get('/stats', adminDashboardController.getDashboardStats);
 router.get('/recent-activities', adminDashboardController.getRecentActivities);
+router.get('/attendance-by-course', adminDashboardController.getAttendanceByCourse);
 
 module.exports = router;

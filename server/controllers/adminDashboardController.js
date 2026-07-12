@@ -6,19 +6,77 @@ const Course = require("../module/courseModel");
 
 const getDashboardStats = async (req, res) => {
   try {
-    const totalStudents = await Student.countDocuments();
-    const totalTeachers = await Teacher.countDocuments();
-    const totalCourses = await Course.countDocuments();
+    const [totalStudents, totalTeachers, totalCourses, attendanceCounts] = await Promise.all([
+      Student.countDocuments(),
+      Teacher.countDocuments(),
+      Course.countDocuments(),
+      Attendance.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            present: {
+              $sum: { $cond: [{ $in: ['$status', ['Present', 'Late']] }, 1, 0] },
+            },
+          },
+        },
+      ]),
+    ]);
+
+    const { total = 0, present = 0 } = attendanceCounts[0] || {};
+    const avgAttendance = total > 0 ? Math.round((present / total) * 100) : 0;
 
     res.status(200).json({
       totalStudents,
       totalTeachers,
       totalCourses,
+      avgAttendance,
     });
   } catch (error) {
     res.status(500).json({
       message: error.message,
     });
+  }
+};
+
+const getAttendanceByCourse = async (req, res) => {
+  try {
+    const results = await Attendance.aggregate([
+      {
+        $group: {
+          _id: '$course',
+          total: { $sum: 1 },
+          present: {
+            $sum: { $cond: [{ $in: ['$status', ['Present', 'Late']] }, 1, 0] },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'courses',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'course',
+        },
+      },
+      { $unwind: '$course' },
+      {
+        $project: {
+          _id: 0,
+          courseId: '$course._id',
+          code: '$course.code',
+          name: '$course.name',
+          percentage: {
+            $round: [{ $multiply: [{ $divide: ['$present', '$total'] }, 100] }, 0],
+          },
+        },
+      },
+      { $sort: { code: 1 } },
+    ]);
+
+    res.status(200).json({ success: true, data: results });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -93,5 +151,6 @@ const getRecentActivities = async (req, res) => {
 
 module.exports = {
     getDashboardStats,
-    getRecentActivities
+    getRecentActivities,
+    getAttendanceByCourse
 };
