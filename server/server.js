@@ -54,6 +54,12 @@ const startServer = async () => {
 };
 
 startServer().catch((err) => {
+    console.log("========== FULL ERROR ==========");
+    console.error(err);
+    console.log("================================");
+
     logger.error('Failed to start server', { error: err.message });
+
     process.exit(1);
 });
+
