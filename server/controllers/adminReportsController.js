@@ -1,27 +1,37 @@
 const Student = require('../module/studentModel');
-const _Teacher = require('../module/teacherModel');
 const Course = require('../module/courseModel');
 const Attendance = require('../module/attendanceModel');
 const Grade = require('../module/gradeModel');
 
-const buildReportData = async (reportType, department) => {
-    const deptFilter = department && department !== 'All Departments' ? { department } : {};
+const buildReportData = async (reportType, department, fromDate, toDate) => {
+    const deptFilter = department && department !== 'All Departments' ? { department, status: 'Active' } : { status: 'Active' };
 
     if (reportType === 'Attendance Report') {
-        const students = await Student.find(deptFilter).select('_id');
+        const students = await Student.find(deptFilter);
         const studentIds = students.map(s => s._id);
-        const records = await Attendance.find({ student: { $in: studentIds } })
+
+        const query = { student: { $in: studentIds } };
+        if (fromDate || toDate) {
+            query.date = {};
+            if (fromDate) query.date.$gte = new Date(fromDate);
+            if (toDate) query.date.$lte = new Date(toDate);
+        }
+
+        const records = await Attendance.find(query)
             .populate('student', 'firstName lastName studentId department')
             .populate('course', 'code name');
 
         const stats = {};
+        students.forEach(s => {
+            stats[s._id.toString()] = { student: s, total: 0, present: 0 };
+        });
+
         records.forEach(a => {
             const sid = a.student?._id.toString();
-            if (!stats[sid]) {
-                stats[sid] = { student: a.student, total: 0, present: 0 };
+            if (stats[sid]) {
+                stats[sid].total++;
+                if (a.status === 'Present' || a.status === 'Late') stats[sid].present++;
             }
-            stats[sid].total++;
-            if (a.status === 'Present' || a.status === 'Late') stats[sid].present++;
         });
 
         return {
@@ -39,19 +49,22 @@ const buildReportData = async (reportType, department) => {
     }
 
     if (reportType === 'Student Performance Report') {
-        const students = await Student.find(deptFilter).select('_id');
+        const students = await Student.find(deptFilter);
         const studentIds = students.map(s => s._id);
         const grades = await Grade.find({ student: { $in: studentIds } })
             .populate('student', 'firstName lastName studentId department');
 
         const stats = {};
+        students.forEach(s => {
+            stats[s._id.toString()] = { student: s, totalMarks: 0, count: 0 };
+        });
+
         grades.forEach(g => {
             const sid = g.student?._id.toString();
-            if (!stats[sid]) {
-                stats[sid] = { student: g.student, totalMarks: 0, count: 0 };
+            if (stats[sid]) {
+                stats[sid].totalMarks += g.marks;
+                stats[sid].count++;
             }
-            stats[sid].totalMarks += g.marks;
-            stats[sid].count++;
         });
 
         return {
@@ -68,7 +81,8 @@ const buildReportData = async (reportType, department) => {
     }
 
     if (reportType === 'Course Report') {
-        const courses = await Course.find(deptFilter).populate('teacher', 'firstName lastName');
+        const courseFilter = department && department !== 'All Departments' ? { department, status: 'Active' } : { status: 'Active' };
+        const courses = await Course.find(courseFilter).populate('teacher', 'firstName lastName');
         return {
             title: 'Course Report',
             department: department || 'All Departments',
@@ -109,33 +123,33 @@ const buildReportData = async (reportType, department) => {
 
 const generateReport = async (req, res) => {
     try {
-        const { reportType, department } = req.query;
+        const { reportType, department, fromDate, toDate } = req.query;
 
         if (!reportType) {
-            return res.json({ success: false, message: 'reportType is required' });
+            return res.status(400).json({ success: false, message: 'reportType is required' });
         }
 
-        const report = await buildReportData(reportType, department);
+        const report = await buildReportData(reportType, department, fromDate, toDate);
         return res.json({ success: true, report });
     } catch (error) {
-        return res.json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
 const exportReport = async (req, res) => {
     try {
-        const { reportType, format, department } = req.query;
+        const { reportType, format, department, fromDate, toDate } = req.query;
 
         if (!reportType || !format) {
-            return res.json({ success: false, message: 'reportType and format are required' });
+            return res.status(400).json({ success: false, message: 'reportType and format are required' });
         }
 
-        const report = await buildReportData(reportType, department);
+        const report = await buildReportData(reportType, department, fromDate, toDate);
 
         if (format === 'csv') {
             const { rows } = report;
             if (!rows.length) {
-                return res.json({ success: false, message: 'No data to export' });
+                return res.status(400).json({ success: false, message: 'No data to export' });
             }
             const headers = Object.keys(rows[0]).join(',');
             const lines = rows.map(r =>
@@ -150,7 +164,7 @@ const exportReport = async (req, res) => {
 
         return res.json({ success: true, report });
     } catch (error) {
-        return res.json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: error.message });
     }
 };
 
