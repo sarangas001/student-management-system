@@ -93,13 +93,13 @@ const StudentDashboard = () => {
         <div className="stat-card">
           <div className="stat-icon si-blue"><BookOpen size={18} /></div>
           <div className="stat-label">Enrolled Courses</div>
-          <div className="stat-val">{stats?.enrolledCount ?? "—"}</div>
+          <div className="stat-val">{stats?.totalCourses ?? "—"}</div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon si-green"><CalendarCheck size={18} /></div>
           <div className="stat-label">My Attendance</div>
-          <div className="stat-val">{stats ? `${stats.overallAttendance}%` : "—"}</div>
+          <div className="stat-val">{stats ? `${stats.attendancePercentage}%` : "—"}</div>
         </div>
 
         <div className="stat-card">

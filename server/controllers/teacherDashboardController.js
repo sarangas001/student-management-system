@@ -19,20 +19,24 @@ const getTodayDateRange = () => {
 };
 
 const getTeacherContext = async (teacherId) => {
-  const teacher = await Teacher.findOne({ teacherId })
-    .populate({
-      path: 'assignedCourses',
-      select: '_id code name credits department status',
-    })
-    .lean();
+  const teacher = await Teacher.findOne({ teacherId }).lean();
 
   if (!teacher) {
     return null;
   }
 
-  const courseIds = (teacher.assignedCourses || []).map((course) => course._id);
+  const assignedCourses = await Course.find({
+    $or: [
+      { teacher: teacher._id },
+      { _id: { $in: teacher.assignedCourses || [] } },
+    ],
+  })
+    .select('_id code name credits department status')
+    .lean();
 
-  return { teacher, courseIds };
+  const courseIds = assignedCourses.map((course) => course._id);
+
+  return { teacher: { ...teacher, assignedCourses }, courseIds };
 };
 
 const getCourseStudentCounts = async (courseIds) => {

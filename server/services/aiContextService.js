@@ -128,13 +128,18 @@ Respond clearly. Use bullet points or tables when listing multiple items. You ma
    Scoped to their own assignedCourses only.
 ───────────────────────────────────────────── */
 const buildTeacherContext = async (userId) => {
-    const teacher = await Teacher.findById(userId)
-        .populate({ path: 'assignedCourses', select: '_id code name credits department status' })
-        .lean();
+    const teacher = await Teacher.findById(userId).lean();
 
     if (!teacher) throw new Error('Teacher not found');
 
-    const courses = teacher.assignedCourses || [];
+    const courses = await Course.find({
+        $or: [
+            { teacher: teacher._id },
+            { _id: { $in: teacher.assignedCourses || [] } },
+        ],
+    })
+        .select('_id code name credits department status')
+        .lean();
     const courseIds = courses.map(c => c._id);
 
     const [students, attendanceRecords, grades] = await Promise.all([

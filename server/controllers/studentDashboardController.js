@@ -6,6 +6,11 @@ const { DEFAULT_WEEKLY_SLOTS } = require("../utils/weeklyScheduleTemplate");
 
 const DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
+const GRADE_POINTS = {
+  A: 4.0, "A-": 3.7, "B+": 3.3, B: 3.0, "B-": 2.7,
+  "C+": 2.3, C: 2.0, "C-": 1.7, D: 1.0, F: 0,
+};
+
 // Dashboard Statistics
 const getStudentDashboardStats = async (req, res, next) => {
   try {
@@ -32,7 +37,7 @@ const getStudentDashboardStats = async (req, res, next) => {
       Grade.find({
         student: studentId,
         published: true,
-      }),
+      }).populate("course", "credits"),
 
       Attendance.find({
         student: studentId,
@@ -51,15 +56,15 @@ const getStudentDashboardStats = async (req, res, next) => {
         ? Math.round((presentClasses / totalClasses) * 100)
         : 0;
 
-    const gpa =
-      grades.length > 0
-        ? (
-            grades.reduce(
-              (sum, grade) => sum + (grade.gradePoint || 0),
-              0
-            ) / grades.length
-          ).toFixed(2)
-        : 0;
+    let totalCredits = 0;
+    let totalPoints = 0;
+    grades.forEach((g) => {
+      const credits = g.course?.credits || 0;
+      const point = GRADE_POINTS[g.grade] ?? 0;
+      totalCredits += credits;
+      totalPoints += point * credits;
+    });
+    const gpa = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : null;
 
     const courses = student.enrolledCourses.map((course) => {
       const records = attendanceRecords.filter(
@@ -103,6 +108,7 @@ const getStudentDashboardStats = async (req, res, next) => {
           totalCourses: courseIds.length,
           attendancePercentage,
           gpa,
+          atRiskCount: courses.filter((c) => c.status === "At Risk").length,
           pendingTasks: 0,
         },
       },

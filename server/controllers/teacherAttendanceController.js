@@ -1,8 +1,18 @@
 const Teacher = require("../module/teacherModel");
+const Course = require("../module/courseModel");
 const Student = require("../module/studentModel");
 const Attendance = require("../module/attendanceModel");
 
 const VALID_STATUSES = ['Present', 'Absent', 'Late', 'Excused'];
+
+const getAssignedCourses = async (teacher) => {
+  return Course.find({
+    $or: [
+      { teacher: teacher._id },
+      { _id: { $in: teacher.assignedCourses || [] } },
+    ],
+  });
+};
 
 const getTeacherCourses = async (req, res) => {
   try {
@@ -12,13 +22,15 @@ const getTeacherCourses = async (req, res) => {
       return res.status(400).json({ message: "teacherId is required" });
     }
 
-    const teacher = await Teacher.findOne({ teacherId }).populate("assignedCourses");
+    const teacher = await Teacher.findOne({ teacherId });
 
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
     }
 
-    res.status(200).json(teacher.assignedCourses);
+    const assignedCourses = await getAssignedCourses(teacher);
+
+    res.status(200).json(assignedCourses);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -59,8 +71,9 @@ const submitAttendance = async (req, res) => {
     }
 
     // Verify teacher is assigned to this course
-    const isAssigned = teacher.assignedCourses.some(
-      c => c.toString() === courseId.toString()
+    const assignedCourses = await getAssignedCourses(teacher);
+    const isAssigned = assignedCourses.some(
+      c => c._id.toString() === courseId.toString()
     );
     if (!isAssigned) {
       return res.status(403).json({ message: "You are not assigned to this course" });
