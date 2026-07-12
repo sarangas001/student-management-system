@@ -1,26 +1,26 @@
 const _Student = require('../module/studentModel');
 
 // get all students
-const getStudents = async (_req, _res) => {
+const getStudents = async (req, res) => {
 
 };
 
 // get student by id
-const getStudentById = async (_req, _res) => {
+const getStudentById = async (req, res) => {
 
 };
 
 // create student
-const createStudent = async (_req, _res) => {
+const createStudent = async (req, res) => {
 
 };
 
 // update student
-const updateStudent = async (_req, _res) => {
+const updateStudent = async (req, res) => {
   
 };
 
-const deleteStudent = async (_req, _res) => {
+const deleteStudent = async (req, res) => {
   
 };
 
