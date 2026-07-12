@@ -76,7 +76,7 @@ const TeacherSchedule = () => {
                 <tr key={row.courseId ? `${row.courseId}-${index}` : index}>
                   <td>{row.day}</td>
                   <td>{row.time}</td>
-                  <td>{row.courseCode} — {row.courseName}</td>
+                  <td>{row.courseCode ? `${row.courseCode} — ${row.courseName}` : row.courseName}</td>
                   <td>{row.room}</td>
                   <td>{row.studentCount}</td>
                 </tr>

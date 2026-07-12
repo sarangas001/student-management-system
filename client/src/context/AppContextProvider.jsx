@@ -18,7 +18,7 @@ export const AppContextProvider = ({ children }) => {
                 console.log(data);
                 setIsLoggedIn(data.success);
                 setRole(data.role);
-                setUser(data.user_id);
+                setUser(data.user);
             } catch (error) {
                 console.error(error);
             }
