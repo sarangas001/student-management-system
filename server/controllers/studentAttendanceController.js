@@ -45,6 +45,7 @@ const getStudentAttendanceSummary = async (req, res, next) => {
   }
 };
 
+
 const getStudentAttendanceDetails = async (req, res, next) => {
   try {
     const studentId = req.user.id;
