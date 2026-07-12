@@ -5,10 +5,20 @@ import { useAppContext } from "../../context/useAppContext";
 function AdminReports() {
   const { backendUrl } = useAppContext();
 
+  const getDefaultFromDate = () => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 6);
+    return d.toISOString().split("T")[0];
+  };
+
+  const getDefaultToDate = () => {
+    return new Date().toISOString().split("T")[0];
+  };
+
   const [reportType, setReportType] = useState("Attendance Report");
   const [department, setDepartment] = useState("All Departments");
-  const [fromDate, setFromDate] = useState("2025-01-01");
-  const [toDate, setToDate] = useState("2025-05-17");
+  const [fromDate, setFromDate] = useState(getDefaultFromDate());
+  const [toDate, setToDate] = useState(getDefaultToDate());
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -26,13 +36,16 @@ function AdminReports() {
       } else {
         setMessage(data.message || "Failed to generate report.");
       }
-    }).catch(() => setMessage("Error generating report."))
-      .finally(() => setLoading(false));
+    }).catch((err) => {
+      const serverMsg = err.response?.data?.message || err.message;
+      setMessage(`Error generating report: ${serverMsg || 'Unknown error'}`);
+    }).finally(() => setLoading(false));
   };
 
   const handleExportCSV = () => {
+    setMessage("");
     axios.get(`${backendUrl}/api/admin/reports/export`, {
-      params: { reportType, department, format: "csv" },
+      params: { reportType, department, fromDate, toDate, format: "csv" },
       withCredentials: true,
       responseType: "blob"
     }).then(({ data }) => {
@@ -42,7 +55,20 @@ function AdminReports() {
       a.download = `${reportType.replace(/ /g, "_")}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-    }).catch(() => setMessage("Error exporting report."));
+    }).catch(async (err) => {
+      if (err.response?.data instanceof Blob) {
+        const text = await err.response.data.text();
+        try {
+          const json = JSON.parse(text);
+          setMessage(`Error exporting report: ${json.message || "Unknown error"}`);
+        } catch {
+          setMessage("Error exporting report.");
+        }
+      } else {
+        const serverMsg = err.response?.data?.message || err.message;
+        setMessage(`Error exporting report: ${serverMsg || 'Unknown error'}`);
+      }
+    });
   };
 
   const handleExportPDF = () => {
@@ -72,7 +98,7 @@ function AdminReports() {
             </select>
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginTop: "10px" }}>
             <label>Department</label>
             <select value={department} onChange={(e) => setDepartment(e.target.value)}>
               <option>All Departments</option>
@@ -94,10 +120,13 @@ function AdminReports() {
           </div>
 
           {message && (
-            <p style={{ color: "var(--red)", marginTop: "10px" }}>{message}</p>
+            <div className={`alert ${message.toLowerCase().includes('error') || message.toLowerCase().includes('failed') ? 'alert-amber' : 'alert-green'}`} style={{ marginTop: '15px' }}>
+              <i className={message.toLowerCase().includes('error') || message.toLowerCase().includes('failed') ? 'ti ti-alert-circle' : 'ti ti-circle-check'}></i>
+              <div>{message}</div>
+            </div>
           )}
 
-          <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+          <div style={{ display: "flex", gap: "10px", marginTop: "20px", flexWrap: "wrap" }}>
             <button className="btn btn-primary" onClick={handleGenerate} disabled={loading}>
               {loading ? "Generating…" : "Generate Report"}
             </button>
@@ -135,7 +164,7 @@ function AdminReports() {
 
       {/* Report Preview */}
       {report && (
-        <div className="card" style={{ marginTop: "20px" }}>
+        <div className="card report-preview-card" style={{ marginTop: "20px" }}>
           <div className="card-header">
             <span className="card-title">{report.title} — {report.department}</span>
           </div>
@@ -161,6 +190,53 @@ function AdminReports() {
           )}
         </div>
       )}
+
+      {/* Print styling to only output the clean preview block, and mobile stacking */}
+      <style>{`
+        @media print {
+          body {
+            background: #fff !important;
+            color: #000 !important;
+          }
+          .sidebar,
+          .topbar,
+          .card:not(.report-preview-card),
+          .btn,
+          header,
+          footer {
+            display: none !important;
+          }
+          .layout,
+          .main,
+          .content-area {
+            display: block !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #fff !important;
+          }
+          .report-preview-card {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+          th, td {
+            border: 1px solid #ddd !important;
+            padding: 8px !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .page > div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
