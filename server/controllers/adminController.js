@@ -1,27 +1,27 @@
 const _Admin = require('../module/adminModel');
 
 // get all admins
-const getAdmins = async (_req, _res) => {
+const getAdmins = async (req, res) => {
 
 };
 
 // get admin by id
-const getAdminById = async (_req, _res) => {
+const getAdminById = async (req, res) => {
 
 };
 
 // create admin
-const createAdmin = async (_req, _res) => {
+const createAdmin = async (req, res) => {
 
 };
 
 // update admin
-const updateAdmin = async (_req, _res) => {
+const updateAdmin = async (req, res) => {
   
 };
 
 // delete admin
-const deleteAdmin = async (_req, _res) => {
+const deleteAdmin = async (req, res) => {
 
 };
 
