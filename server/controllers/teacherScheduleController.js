@@ -7,12 +7,12 @@ const getTeacherIdentifier = (req) => {
 };
 
 const DEFAULT_WEEKLY_SLOTS = [
-  { day: 'Monday', time: '08:00 AM - 10:00 AM', room: 'A201' },
-  { day: 'Monday', time: '10:00 AM - 12:00 PM', room: 'B105' },
-  { day: 'Wednesday', time: '08:00 AM - 10:00 AM', room: 'A201' },
-  { day: 'Wednesday', time: '02:00 PM - 04:00 PM', room: 'C302' },
-  { day: 'Thursday', time: '02:00 PM - 03:00 PM', room: 'Staff Block' },
-  { day: 'Friday', time: '10:00 AM - 12:00 PM', room: 'B105' },
+  { day: 'Monday', time: '08:00 - 10:00', room: 'A201', courseCode: 'CS301' },
+  { day: 'Monday', time: '10:00 - 12:00', room: 'B105', courseCode: 'CS401' },
+  { day: 'Wednesday', time: '08:00 - 10:00', room: 'A201', courseCode: 'CS301' },
+  { day: 'Wednesday', time: '14:00 - 16:00', room: 'C302', courseCode: 'MA201' },
+  { day: 'Thursday', time: '14:00 - 15:00', room: 'Staff Block', courseCode: '', isOfficeHours: true },
+  { day: 'Friday', time: '10:00 - 12:00', room: 'B105', courseCode: 'CS401' },
 ];
 
 const getTeacherContext = async (teacherId) => {
@@ -68,25 +68,41 @@ const buildScheduleRows = async (courses) => {
   const activeCourses = courses.filter((course) => !course.status || course.status === 'Active');
   const studentCounts = await getCourseStudentCounts(activeCourses.map((course) => course._id));
 
-  if (activeCourses.length === 0) {
-    return [];
+  const courseMap = new Map(activeCourses.map((course) => [course.code, course]));
+
+  const schedule = [];
+  for (const slot of DEFAULT_WEEKLY_SLOTS) {
+    if (slot.isOfficeHours) {
+      schedule.push({
+        day: slot.day,
+        time: slot.time,
+        courseId: null,
+        courseCode: '',
+        courseName: 'Office Hours',
+        room: slot.room,
+        studentCount: '—',
+        credits: 0,
+        status: 'Active',
+      });
+    } else {
+      const course = courseMap.get(slot.courseCode);
+      if (course) {
+        schedule.push({
+          day: slot.day,
+          time: slot.time,
+          courseId: course._id,
+          courseCode: course.code,
+          courseName: course.name,
+          room: slot.room,
+          studentCount: studentCounts.get(String(course._id)) || 0,
+          credits: course.credits,
+          status: course.status || 'Active',
+        });
+      }
+    }
   }
 
-  return activeCourses.map((course, index) => {
-    const slot = DEFAULT_WEEKLY_SLOTS[index % DEFAULT_WEEKLY_SLOTS.length];
-
-    return {
-      day: slot.day,
-      time: slot.time,
-      courseId: course._id,
-      courseCode: course.code,
-      courseName: course.name,
-      room: slot.room,
-      studentCount: studentCounts.get(String(course._id)) || 0,
-      credits: course.credits,
-      status: course.status || 'Active',
-    };
-  });
+  return schedule;
 };
 
 const getTeacherSchedule = async (req, res) => {
