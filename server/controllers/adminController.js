@@ -1,4 +1,4 @@
-const _Admin = require('../module/adminModel');
+const Admin = require('../module/adminModel');
 
 // get all admins
 const getAdmins = async (req, res) => {
