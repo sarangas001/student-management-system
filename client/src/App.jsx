@@ -23,7 +23,7 @@ import Login from './pages/Login'
 import { useAppContext } from './context/useAppContext'
 
 function App() {
-    const { isLoggedIn, role} = useAppContext();
+    const { isLoggedIn, role, user} = useAppContext();
     const [activePage, setActivePage] = useState(role ? `${role}-dashboard` : 'null-dashboard');
     const [prevRole, setPrevRole] = useState(role);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -59,7 +59,7 @@ function App() {
   return (
     <>
       <div className="layout">
-        <SideBar role={role} activePage={activePage} showPage={(data) => showPage(data)} />
+        <SideBar role={role} user={user} activePage={activePage} showPage={(data) => showPage(data)} />
         <div className="main">
           <TopBar role={role} pageTitle={activePage.split('-').map(s => s[0].toUpperCase() + s.slice(1)).join(' ')} />
           

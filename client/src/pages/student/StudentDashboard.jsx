@@ -34,13 +34,13 @@ const StudentDashboard = () => {
         ]);
 
         if (statsRes.data.success) {
-          setStudentInfo(statsRes.data.student);
-          setStats(statsRes.data.stats);
-          setCourses(statsRes.data.courses);
-          setAnnouncements(statsRes.data.announcements);
+          setStudentInfo(statsRes.data.data.student);
+          setStats(statsRes.data.data.stats);
+          setCourses(statsRes.data.data.courses || []);
+          setAnnouncements(statsRes.data.data.announcements || []);
         }
         if (upcomingRes.data.success) {
-          setUpcoming(upcomingRes.data.upcoming);
+          setUpcoming(upcomingRes.data.data || []);
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);

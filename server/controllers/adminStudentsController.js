@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const Student = require('../module/studentModel');
+const Course = require('../module/courseModel');
 
 const SALT_ROUNDS = 12;
 
@@ -79,4 +80,39 @@ const deleteStudent = async (req, res, next) => {
     }
 };
 
-module.exports = { getAllStudents, getStudentById, createStudent, updateStudent, deleteStudent };
+const assignCourse = async (req, res, next) => {
+    try {
+        const { courseId } = req.body;
+
+        if (!courseId) {
+            return res.status(400).json({ success: false, message: 'courseId is required' });
+        }
+
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.status(404).json({ success: false, message: 'Course not found' });
+        }
+
+        const student = await Student.findById(req.params.id);
+        if (!student) {
+            return res.status(404).json({ success: false, message: 'Student not found' });
+        }
+
+        const alreadyEnrolled = student.enrolledCourses.some(
+            (c) => c.toString() === courseId.toString()
+        );
+        if (alreadyEnrolled) {
+            return res.status(409).json({ success: false, message: 'Student is already enrolled in this course' });
+        }
+
+        student.enrolledCourses.push(courseId);
+        await student.save();
+
+        const updated = await Student.findById(student._id).select('-password').populate('enrolledCourses', 'code name');
+        res.status(200).json({ success: true, data: updated });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { getAllStudents, getStudentById, createStudent, updateStudent, deleteStudent, assignCourse };

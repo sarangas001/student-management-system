@@ -4,11 +4,12 @@ const Course = require("../module/courseModel");
 // Get All Courses
 const getAllCourses = async (req, res) => {
   try {
-    const courses = await Course.find().populate("teacher");
+    const courses = await Course.find().populate("teacher", "firstName lastName teacherId");
 
-    res.status(200).json(courses);
+    res.status(200).json({ success: true, count: courses.length, data: courses });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
@@ -18,10 +19,12 @@ const getAllCourses = async (req, res) => {
 const createCourse = async (req, res) => {
   try {
     const course = await Course.create(req.body);
+    const populated = await course.populate("teacher", "firstName lastName teacherId");
 
-    res.status(201).json(course);
+    res.status(201).json({ success: true, data: populated });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
@@ -33,18 +36,20 @@ const updateCourse = async (req, res) => {
     const updatedCourse = await Course.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
-    );
+      { new: true, runValidators: true }
+    ).populate("teacher", "firstName lastName teacherId");
 
     if (!updatedCourse) {
       return res.status(404).json({
+        success: false,
         message: "Course not found",
       });
     }
 
-    res.status(200).json(updatedCourse);
+    res.status(200).json({ success: true, data: updatedCourse });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: error.message,
     });
   }
@@ -59,15 +64,18 @@ const deleteCourse = async (req, res) => {
 
     if (!deletedCourse) {
       return res.status(404).json({
+        success: false,
         message: "Course not found",
       });
     }
 
     res.status(200).json({
+      success: true,
       message: "Course deleted successfully",
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: error.message,
     });
   }

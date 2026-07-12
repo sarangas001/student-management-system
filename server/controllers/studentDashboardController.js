@@ -2,6 +2,9 @@ const Student = require("../module/studentModel");
 const Course = require("../module/courseModel");
 const Grade = require("../module/gradeModel");
 const Attendance = require("../module/attendanceModel");
+const { DEFAULT_WEEKLY_SLOTS } = require("../utils/weeklyScheduleTemplate");
+
+const DAY_ORDER = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 // Dashboard Statistics
 const getStudentDashboardStats = async (req, res, next) => {
@@ -10,7 +13,11 @@ const getStudentDashboardStats = async (req, res, next) => {
 
     const student = await Student.findById(studentId)
       .select("-password")
-      .populate("enrolledCourses", "code name credits department");
+      .populate({
+        path: "enrolledCourses",
+        select: "code name credits department status teacher",
+        populate: { path: "teacher", select: "firstName lastName" },
+      });
 
     if (!student) {
       return res.status(404).json({
@@ -69,9 +76,10 @@ const getStudentDashboardStats = async (req, res, next) => {
           : 100;
 
       return {
-        _id: course._id,
+        courseId: course._id,
         code: course.code,
         name: course.name,
+        teacher: course.teacher ? `${course.teacher.firstName} ${course.teacher.lastName}` : "Unassigned",
         department: course.department,
         status: percentage >= 75 ? "On Track" : "At Risk",
       };
@@ -89,6 +97,7 @@ const getStudentDashboardStats = async (req, res, next) => {
         },
 
         courses,
+        announcements: [],
 
         stats: {
           totalCourses: courseIds.length,
@@ -124,9 +133,37 @@ const getUpcomingClasses = async (req, res, next) => {
       status: "Active",
     }).select("code name department credits");
 
+    const courseMap = new Map(courses.map((course) => [course.code, course]));
+
+    const todayIndex = new Date().getDay();
+    const todayDayOrderIndex = todayIndex === 0 ? 6 : todayIndex - 1;
+
+    const upcoming = [];
+    for (const slot of DEFAULT_WEEKLY_SLOTS) {
+      if (slot.isOfficeHours) continue;
+
+      const course = courseMap.get(slot.courseCode);
+      if (!course) continue;
+
+      upcoming.push({
+        courseId: course._id,
+        courseCode: course.code,
+        courseName: course.name,
+        day: slot.day,
+        time: slot.time,
+        venue: slot.room,
+      });
+    }
+
+    upcoming.sort((a, b) => {
+      const aRel = (DAY_ORDER.indexOf(a.day) - todayDayOrderIndex + 7) % 7;
+      const bRel = (DAY_ORDER.indexOf(b.day) - todayDayOrderIndex + 7) % 7;
+      return aRel - bRel;
+    });
+
     return res.status(200).json({
       success: true,
-      data: courses,
+      data: upcoming,
     });
   } catch (error) {
     next(error);

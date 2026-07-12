@@ -20,6 +20,12 @@ const AdminDashboard = () => {
   const [activitiesLoading, setActivitiesLoading] = useState(true);
   const [activitiesError, setActivitiesError] = useState(null);
 
+  const [stats, setStats] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  const [attendanceByCourse, setAttendanceByCourse] = useState([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(true);
+
   useEffect(() => {
     const fetchActivities = async () => {
       try {
@@ -39,8 +45,46 @@ const AdminDashboard = () => {
       }
     };
 
+    const fetchStats = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendUrl}/api/admin/dashboard/stats`,
+          { withCredentials: true }
+        );
+        setStats(data);
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    const fetchAttendanceByCourse = async () => {
+      try {
+        const { data } = await axios.get(
+          `${backendUrl}/api/admin/dashboard/attendance-by-course`,
+          { withCredentials: true }
+        );
+        if (data.success) {
+          setAttendanceByCourse(data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching attendance by course:', err);
+      } finally {
+        setAttendanceLoading(false);
+      }
+    };
+
     fetchActivities();
+    fetchStats();
+    fetchAttendanceByCourse();
   }, [backendUrl]);
+
+  const getBarColor = (percentage) => {
+    if (percentage >= 85) return 'var(--blue)';
+    if (percentage >= 75) return 'var(--green)';
+    return 'var(--amber)';
+  };
 
   return (
     <div className="page active" id="admin-dashboard">
@@ -49,26 +93,22 @@ const AdminDashboard = () => {
         <div className="stat-card">
           <div className="stat-icon si-blue"><Users className="w-5 h-5" /></div>
           <div className="stat-label">Total Students</div>
-          <div className="stat-val">1,248</div>
-          <div className="stat-delta">↑ 12 enrolled this month</div>
+          <div className="stat-val">{statsLoading ? '—' : stats?.totalStudents ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-icon si-green"><BookOpen className="w-5 h-5" /></div>
           <div className="stat-label">Active Courses</div>
-          <div className="stat-val">34</div>
-          <div className="stat-delta">↑ 3 new courses added</div>
+          <div className="stat-val">{statsLoading ? '—' : stats?.totalCourses ?? 0}</div>
         </div>
         <div className="stat-card">
           <div className="stat-icon si-amber"><CalendarDays className="w-5 h-5" /></div>
           <div className="stat-label">Avg Attendance</div>
-          <div className="stat-val">87%</div>
-          <div className="stat-delta">↑ 2% vs last week</div>
+          <div className="stat-val">{statsLoading ? '—' : `${stats?.avgAttendance ?? 0}%`}</div>
         </div>
         <div className="stat-card">
           <div className="stat-icon si-red"><Monitor className="w-5 h-5" /></div>
           <div className="stat-label">Teachers</div>
-          <div className="stat-val">56</div>
-          <div className="stat-delta" style={{ color: 'var(--green)' }}>Across 4 departments</div>
+          <div className="stat-val">{statsLoading ? '—' : stats?.totalTeachers ?? 0}</div>
         </div>
       </div>
 
@@ -132,45 +172,25 @@ const AdminDashboard = () => {
             <span className="card-title">Attendance by Course</span>
           </div>
 
-          <div className="grade-bar-wrap" style={{ marginTop: '16px' }}>
-            <div className="grade-bar-label">
-              <span>CS301 — Software Engineering</span>
-              <span style={{ color: 'var(--green)', fontWeight: 600 }}>92%</span>
-            </div>
-            <div className="grade-bar-bg">
-              <div className="grade-bar-fill" style={{ width: '92%', background: 'var(--blue)' }}></div>
-            </div>
-          </div>
+          {attendanceLoading && (
+            <p style={{ padding: '16px', color: 'var(--muted)' }}>Loading attendance…</p>
+          )}
 
-          <div className="grade-bar-wrap" style={{ marginTop: '24px' }}>
-            <div className="grade-bar-label">
-              <span>MA201 — Mathematics II</span>
-              <span style={{ color: 'var(--green)', fontWeight: 600 }}>85%</span>
-            </div>
-            <div className="grade-bar-bg">
-              <div className="grade-bar-fill" style={{ width: '85%', background: 'var(--green)' }}></div>
-            </div>
-          </div>
+          {!attendanceLoading && attendanceByCourse.length === 0 && (
+            <p style={{ padding: '16px', color: 'var(--muted)' }}>No attendance records yet.</p>
+          )}
 
-          <div className="grade-bar-wrap" style={{ marginTop: '24px' }}>
-            <div className="grade-bar-label">
-              <span>EN102 — Technical English</span>
-              <span style={{ color: '#d97706', fontWeight: 600 }}>78%</span>
+          {!attendanceLoading && attendanceByCourse.map((item, idx) => (
+            <div className="grade-bar-wrap" style={{ marginTop: idx === 0 ? '16px' : '24px' }} key={item.courseId}>
+              <div className="grade-bar-label">
+                <span>{item.code} — {item.name}</span>
+                <span style={{ color: getBarColor(item.percentage), fontWeight: 600 }}>{item.percentage}%</span>
+              </div>
+              <div className="grade-bar-bg">
+                <div className="grade-bar-fill" style={{ width: `${item.percentage}%`, background: getBarColor(item.percentage) }}></div>
+              </div>
             </div>
-            <div className="grade-bar-bg">
-              <div className="grade-bar-fill" style={{ width: '78%', background: 'var(--amber)' }}></div>
-            </div>
-          </div>
-
-          <div className="grade-bar-wrap" style={{ marginTop: '24px' }}>
-            <div className="grade-bar-label">
-              <span>CS401 — Data Structures</span>
-              <span style={{ color: 'var(--green)', fontWeight: 600 }}>90%</span>
-            </div>
-            <div className="grade-bar-bg">
-              <div className="grade-bar-fill" style={{ width: '90%', background: 'var(--blue)' }}></div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

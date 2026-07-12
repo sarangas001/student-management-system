@@ -1,13 +1,26 @@
-const _Teacher = require('../module/teacherModel');
+const Teacher = require('../module/teacherModel');
 
 // get all teachers
-const getTeachers = async (_req, _res) => {
-
+const getTeachers = async (_req, res) => {
+  try {
+    const teachers = await Teacher.find().select('-password');
+    res.status(200).json({ success: true, count: teachers.length, data: teachers });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // get teacher by id
-const getTeacherById = async (_req, _res) => {
-
+const getTeacherById = async (req, res) => {
+  try {
+    const teacher = await Teacher.findById(req.params.id).select('-password');
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'Teacher not found' });
+    }
+    res.status(200).json({ success: true, data: teacher });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 };
 
 // create teacher
