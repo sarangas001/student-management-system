@@ -1,4 +1,11 @@
-export const SideBar = ({ role, activePage, showPage }) => {
+export const SideBar = ({ role, user, activePage, showPage }) => {
+    const fullName = user ? `${user.firstName} ${user.lastName}` : (
+        role === 'admin' ? 'Admin User' : role === 'teacher' ? 'Teacher User' : 'Student User'
+    );
+    const initials = user
+        ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
+        : (role === 'admin' ? 'AD' : role === 'teacher' ? 'TE' : 'ST');
+
     return (
     //   <!-- SIDEBAR -->
     <div className="sidebar">
@@ -88,9 +95,9 @@ export const SideBar = ({ role, activePage, showPage }) => {
         
             <div className="sidebar-bottom">
             <div className="user-chip">
-                <div className="avatar" id="user-avatar">{role === 'admin' ? 'AD' : role === 'teacher' ? 'TE' : 'ST'}</div>
+                <div className="avatar" id="user-avatar">{initials}</div>
                 <div>
-                <div className="user-name" id="user-name">{role === 'admin' ? 'Admin User' : role === 'teacher' ? 'Teacher User' : 'Student User'}</div>
+                <div className="user-name" id="user-name">{fullName}</div>
                 <div className="user-role-label" id="user-role-label">{role === 'admin' ? 'Administrator' : role === 'teacher' ? 'Teacher' : 'Student'}</div>
                 </div>
             </div>

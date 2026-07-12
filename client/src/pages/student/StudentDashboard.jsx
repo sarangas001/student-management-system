@@ -34,13 +34,13 @@ const StudentDashboard = () => {
         ]);
 
         if (statsRes.data.success) {
-          setStudentInfo(statsRes.data.student);
-          setStats(statsRes.data.stats);
-          setCourses(statsRes.data.courses);
-          setAnnouncements(statsRes.data.announcements);
+          setStudentInfo(statsRes.data.data.student);
+          setStats(statsRes.data.data.stats);
+          setCourses(statsRes.data.data.courses || []);
+          setAnnouncements(statsRes.data.data.announcements || []);
         }
         if (upcomingRes.data.success) {
-          setUpcoming(upcomingRes.data.upcoming);
+          setUpcoming(upcomingRes.data.data || []);
         }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -93,13 +93,13 @@ const StudentDashboard = () => {
         <div className="stat-card">
           <div className="stat-icon si-blue"><BookOpen size={18} /></div>
           <div className="stat-label">Enrolled Courses</div>
-          <div className="stat-val">{stats?.enrolledCount ?? "—"}</div>
+          <div className="stat-val">{stats?.totalCourses ?? "—"}</div>
         </div>
 
         <div className="stat-card">
           <div className="stat-icon si-green"><CalendarCheck size={18} /></div>
           <div className="stat-label">My Attendance</div>
-          <div className="stat-val">{stats ? `${stats.overallAttendance}%` : "—"}</div>
+          <div className="stat-val">{stats ? `${stats.attendancePercentage}%` : "—"}</div>
         </div>
 
         <div className="stat-card">

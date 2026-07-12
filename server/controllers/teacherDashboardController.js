@@ -19,20 +19,24 @@ const getTodayDateRange = () => {
 };
 
 const getTeacherContext = async (teacherId) => {
-  const teacher = await Teacher.findOne({ teacherId })
-    .populate({
-      path: 'assignedCourses',
-      select: '_id code name credits department status',
-    })
-    .lean();
+  const teacher = await Teacher.findOne({ teacherId }).lean();
 
   if (!teacher) {
     return null;
   }
 
-  const courseIds = (teacher.assignedCourses || []).map((course) => course._id);
+  const assignedCourses = await Course.find({
+    $or: [
+      { teacher: teacher._id },
+      { _id: { $in: teacher.assignedCourses || [] } },
+    ],
+  })
+    .select('_id code name credits department status')
+    .lean();
 
-  return { teacher, courseIds };
+  const courseIds = assignedCourses.map((course) => course._id);
+
+  return { teacher: { ...teacher, assignedCourses }, courseIds };
 };
 
 const getCourseStudentCounts = async (courseIds) => {
@@ -95,6 +99,65 @@ const getTodayClassCourses = async (courseIds, fallbackCourses) => {
     .lean();
 };
 
+const ATTENDANCE_WARNING_THRESHOLD = 75;
+
+const getAttendanceAlerts = async (courseIds) => {
+  if (!courseIds.length) {
+    return [];
+  }
+
+  const summaries = await Attendance.aggregate([
+    { $match: { course: { $in: courseIds } } },
+    {
+      $group: {
+        _id: { student: '$student', course: '$course' },
+        total: { $sum: 1 },
+        present: {
+          $sum: { $cond: [{ $in: ['$status', ['Present', 'Late']] }, 1, 0] },
+        },
+      },
+    },
+    {
+      $project: {
+        student: '$_id.student',
+        course: '$_id.course',
+        percentage: { $multiply: [{ $divide: ['$present', '$total'] }, 100] },
+      },
+    },
+    { $match: { percentage: { $lt: ATTENDANCE_WARNING_THRESHOLD } } },
+    {
+      $lookup: {
+        from: 'students',
+        localField: 'student',
+        foreignField: '_id',
+        as: 'studentDoc',
+      },
+    },
+    { $unwind: '$studentDoc' },
+    {
+      $lookup: {
+        from: 'courses',
+        localField: 'course',
+        foreignField: '_id',
+        as: 'courseDoc',
+      },
+    },
+    { $unwind: '$courseDoc' },
+    {
+      $project: {
+        _id: 0,
+        studentId: '$studentDoc.studentId',
+        studentName: { $concat: ['$studentDoc.firstName', ' ', '$studentDoc.lastName'] },
+        courseCode: '$courseDoc.code',
+        percentage: { $round: ['$percentage', 0] },
+      },
+    },
+    { $sort: { percentage: 1 } },
+  ]);
+
+  return summaries;
+};
+
 const buildTeacherDashboard = async (teacherId) => {
   const context = await getTeacherContext(teacherId);
 
@@ -107,7 +170,7 @@ const buildTeacherDashboard = async (teacherId) => {
     (course) => !course.status || course.status === 'Active'
   );
 
-  const [uniqueStudentIds, pendingGrades, courseStudentCounts, todayClassCourses] =
+  const [uniqueStudentIds, pendingGrades, courseStudentCounts, todayClassCourses, attendanceAlerts] =
     await Promise.all([
       courseIds.length
         ? Student.distinct('_id', { enrolledCourses: { $in: courseIds } })
@@ -117,6 +180,7 @@ const buildTeacherDashboard = async (teacherId) => {
         : Promise.resolve(0),
       getCourseStudentCounts(courseIds),
       getTodayClassCourses(courseIds, activeCourses),
+      getAttendanceAlerts(courseIds),
     ]);
 
   const todayClasses = todayClassCourses.map((course) => ({
@@ -144,6 +208,7 @@ const buildTeacherDashboard = async (teacherId) => {
       pendingGrades,
     },
     todayClasses,
+    attendanceAlerts,
   };
 };
 
