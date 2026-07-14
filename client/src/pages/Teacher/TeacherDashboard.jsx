@@ -48,9 +48,12 @@ function TeacherDashboard() {
   };
 
   useEffect(() => {
-    fetchDashboard();
+    (async () => {
+      await fetchDashboard();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendUrl, user]);
+
 
   // ── Open modal: fetch unassigned courses ──────────────────────────────────
   const openRegisterModal = async () => {
