@@ -8,8 +8,8 @@ const openai = new OpenAI({
     baseURL: process.env.GEMINI_BASE_URL,
 });
 
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-2.0-flash';
+const MODEL = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+const FALLBACK_MODEL = process.env.GEMINI_FALLBACK_MODEL || 'gemini-3.1-flash-lite';
 
 // Retry config
 const MAX_RETRIES = 3;
