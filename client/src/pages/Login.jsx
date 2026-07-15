@@ -23,6 +23,7 @@ export default function Login() {
       
       if (data.success) {
         await checkLogin();
+        setTimeout(() => navigate('/'), 1200);
       } else {
         setError(data.message || 'Invalid email or password.');
       }

@@ -176,7 +176,77 @@ const getUpcomingClasses = async (req, res, next) => {
   }
 };
 
+// Fetch active available courses that the student is NOT currently enrolled in
+const getAvailableCourses = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
+
+    const student = await Student.findById(studentId).select("enrolledCourses");
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    // Get all Active courses not in student's enrolled list
+    const courses = await Course.find({
+      _id: { $nin: student.enrolledCourses },
+      status: "Active"
+    })
+      .populate("teacher", "firstName lastName")
+      .select("code name credits department status teacher")
+      .lean();
+
+    return res.status(200).json({ success: true, data: courses });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Enroll current student in a course
+const enrollInCourse = async (req, res, next) => {
+  try {
+    const studentId = req.user.id;
+    const { courseId } = req.body;
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: "courseId is required" });
+    }
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
+
+    if (course.status !== "Active") {
+      return res.status(400).json({ success: false, message: "Cannot enroll in an inactive/draft course" });
+    }
+
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
+
+    const alreadyEnrolled = student.enrolledCourses.some(
+      (c) => c.toString() === courseId.toString()
+    );
+    if (alreadyEnrolled) {
+      return res.status(409).json({ success: false, message: "Already enrolled in this course" });
+    }
+
+    student.enrolledCourses.push(courseId);
+    await student.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully enrolled in ${course.code} — ${course.name}`,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getStudentDashboardStats,
   getUpcomingClasses,
-};
+  getAvailableCourses,
+  enrollInCourse,
+};

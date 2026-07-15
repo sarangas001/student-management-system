@@ -1,3 +1,5 @@
+import { BookOpenCheck, Bot, CalendarCheck, ChartBar, Clock, File, LayoutDashboard, Pencil, User2 } from "lucide-react";
+
 export const SideBar = ({ role, user, activePage, showPage }) => {
     const fullName = user ? `${user.firstName} ${user.lastName}` : (
         role === 'admin' ? 'Admin User' : role === 'teacher' ? 'Teacher User' : 'Student User'
@@ -19,27 +21,27 @@ export const SideBar = ({ role, user, activePage, showPage }) => {
         <div id="nav-admin">
             <div className="nav-section">Main</div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-dashboard') ? 'active' : ''} `} onClick={() => showPage('admin-dashboard')}>
-                <i className="ti ti-layout-dashboard"></i> Dashboard
+                <LayoutDashboard className="w-4 h-4"/> Dashboard
             </div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-students') ? 'active' : ''} `} onClick={() => showPage('admin-students')}>
-                <i className="ti ti-users"></i>Students
+                <User2 className="w-4 h-4" /> Students
             </div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-courses') ? 'active' : ''} `} onClick={() => showPage('admin-courses')}>
-                <i className="ti ti-book"></i>Courses
+                <BookOpenCheck className="w-4 h-4" /> Courses
             </div>
             <div className="nav-section">Management</div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-attendance') ? 'active' : ''} `} onClick={() => showPage('admin-attendance')}>
-                <i className="ti ti-calendar-check"></i>Attendance
+                <CalendarCheck className="w-4 h-4" /> Attendance
             </div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-grades') ? 'active' : ''} `} onClick={() => showPage('admin-grades')}>
-                <i className="ti ti-report-analytics"></i>Grades
+                <ChartBar className="w-4 h-4" /> Grades
             </div>
             <div className={`nav-item  ${(role === 'admin' && activePage === 'admin-reports') ? 'active' : ''} `} onClick={() => showPage('admin-reports')}>
-                <i className="ti ti-file-export"></i>Reports
+                <File className="w-4 h-4" />Reports
             </div>
             <div className="nav-section">AI</div>
             <div className={`nav-item ai-nav-item ${activePage === 'ai-assistant' ? 'active' : ''}`} onClick={() => showPage('ai-assistant')}>
-                <i className="ti ti-robot"></i>AI Assistant<span className="ai-badge">NEW</span>
+                <Bot className="w-4 h-4" />AI Assistant<span className="ai-badge">NEW</span>
             </div>
         </div>
     )}
@@ -49,20 +51,20 @@ export const SideBar = ({ role, user, activePage, showPage }) => {
         <div id="nav-teacher">
             <div className="nav-section">My classNamees</div>
             <div className={`nav-item  ${(role === 'teacher' && activePage === 'teacher-dashboard') ? 'active' : ''} `} onClick={() => showPage('teacher-dashboard')}>
-                <i className="ti ti-layout-dashboard"></i>Dashboard
+                <LayoutDashboard className="w-4 h-4" />Dashboard
             </div>
             <div className={`nav-item  ${(role === 'teacher' && activePage === 'teacher-attendance') ? 'active' : ''} `} onClick={() => showPage('teacher-attendance')}>
-                <i className="ti ti-calendar-check"></i>Mark Attendance
+                <CalendarCheck className="w-4 h-4" />Mark Attendance
             </div>
             <div className={`nav-item  ${(role === 'teacher' && activePage === 'teacher-grades') ? 'active' : ''} `} onClick={() => showPage('teacher-grades')}>
-                <i className="ti ti-pencil"></i>Enter Grades
+                <Pencil className="w-4 h-4" />Enter Grades
             </div>
             <div className={`nav-item  ${(role === 'teacher' && activePage === 'teacher-schedule') ? 'active' : ''} `} onClick={() => showPage('teacher-schedule')}>
-                <i className="ti ti-clock"></i>My Schedule
+                <Clock className="w-4 h-4" />My Schedule
             </div>
             <div className="nav-section">AI</div>
             <div className={`nav-item ai-nav-item ${activePage === 'ai-assistant' ? 'active' : ''}`} onClick={() => showPage('ai-assistant')}>
-                <i className="ti ti-robot"></i>AI Assistant<span className="ai-badge">NEW</span>
+                <Bot className="w-4 h-4" />AI Assistant<span className="ai-badge">NEW</span>
             </div>
         </div>
         )
@@ -74,20 +76,20 @@ export const SideBar = ({ role, user, activePage, showPage }) => {
         <div id="nav-student" >
             <div className="nav-section">My Portal</div>
             <div className={`nav-item  ${(role === 'student' && activePage === 'student-dashboard') ? 'active' : ''} `} onClick={() => showPage('student-dashboard')}>
-                <i className="ti ti-layout-dashboard"></i>Dashboard
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
             </div>
             <div className={`nav-item  ${(role === 'student' && activePage === 'student-attendance') ? 'active' : ''} `} onClick={() => showPage('student-attendance')}>
-                <i className="ti ti-calendar"></i>My Attendance
+                <CalendarCheck className="w-4 h-4" /> My Attendance
             </div>
             <div className={`nav-item  ${(role === 'student' && activePage === 'student-grades') ? 'active' : ''} `} onClick={() => showPage('student-grades')}>
-                <i className="ti ti-chart-bar"></i>My Grades
+                <ChartBar className="w-4 h-4" /> My Grades
             </div>
             <div className={`nav-item  ${(role === 'student' && activePage === 'student-schedule') ? 'active' : ''} `} onClick={() => showPage('student-schedule')}>
-                <i className="ti ti-clock"></i>Schedule
+                <Clock className="w-4 h-4" /> Schedule
             </div>
             <div className="nav-section">AI</div>
             <div className={`nav-item ai-nav-item ${activePage === 'ai-assistant' ? 'active' : ''}`} onClick={() => showPage('ai-assistant')}>
-                <i className="ti ti-robot"></i>AI Assistant<span className="ai-badge">NEW</span>
+               <Bot className="w-4 h-4" />AI Assistant<span className="ai-badge">NEW</span>
             </div>
         </div>
         )
