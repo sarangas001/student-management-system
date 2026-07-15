@@ -276,7 +276,77 @@ const getTodayClasses = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/teacher/dashboard/available-courses
+ * Returns all courses that have no teacher assigned yet.
+ */
+const getAvailableCourses = async (req, res) => {
+  try {
+    const courses = await Course.find({ teacher: null })
+      .select('_id code name credits department status')
+      .lean();
+
+    return res.status(200).json({ success: true, data: courses });
+  } catch (error) {
+    console.error('Error fetching available courses:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch available courses' });
+  }
+};
+
+/**
+ * POST /api/teacher/dashboard/register-course
+ * Body: { courseId }
+ * Assigns the authenticated teacher to the selected course.
+ * Also pushes the courseId into the teacher's assignedCourses array.
+ */
+const registerToCourse = async (req, res) => {
+  try {
+    const teacherMongoId = req.user.id; // set by protect middleware
+    const { courseId } = req.body;
+
+    if (!courseId) {
+      return res.status(400).json({ success: false, message: 'courseId is required' });
+    }
+
+    // Load course
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ success: false, message: 'Course not found' });
+    }
+
+    // Prevent overwriting an already-assigned teacher
+    if (course.teacher) {
+      return res.status(409).json({
+        success: false,
+        message: 'This course is already assigned to another teacher',
+      });
+    }
+
+    // Assign teacher to course
+    course.teacher = teacherMongoId;
+    await course.save();
+
+    // Also add to teacher's assignedCourses (avoid duplicates with $addToSet)
+    await Teacher.findByIdAndUpdate(teacherMongoId, {
+      $addToSet: { assignedCourses: course._id },
+    });
+
+    const populated = await course.populate('teacher', 'firstName lastName teacherId');
+
+    return res.status(200).json({
+      success: true,
+      message: `Successfully registered to ${course.code} — ${course.name}`,
+      data: populated,
+    });
+  } catch (error) {
+    console.error('Error registering teacher to course:', error);
+    return res.status(500).json({ success: false, message: 'Failed to register to course' });
+  }
+};
+
 module.exports = {
   getTeacherDashboardStats,
   getTodayClasses,
+  getAvailableCourses,
+  registerToCourse,
 };

@@ -9,10 +9,14 @@ import {
   MapPin,
   Calendar,
   User,
-  GraduationCap
+  GraduationCap,
+  PlusCircle,
+  X,
+  CheckCircle
 } from "lucide-react";
 import axios from "axios";
 import { useAppContext } from "../../context/useAppContext";
+import { toast } from "react-toastify";
 
 const StudentDashboard = () => {
   const { backendUrl } = useAppContext();
@@ -24,33 +28,91 @@ const StudentDashboard = () => {
   const [upcoming, setUpcoming] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        setLoading(true);
-        const [statsRes, upcomingRes] = await Promise.all([
-          axios.get(`${backendUrl}/api/student/dashboard/stats`, { withCredentials: true }),
-          axios.get(`${backendUrl}/api/student/dashboard/upcoming-classes`, { withCredentials: true }),
-        ]);
+  // ── Enroll Course Modal State ──
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [availableCourses, setAvailableCourses] = useState([]);
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [loadingCourses, setLoadingCourses] = useState(false);
+  const [enrolling, setEnrolling] = useState(false);
 
-        if (statsRes.data.success) {
-          setStudentInfo(statsRes.data.data.student);
-          setStats(statsRes.data.data.stats);
-          setCourses(statsRes.data.data.courses || []);
-          setAnnouncements(statsRes.data.data.announcements || []);
-        }
-        if (upcomingRes.data.success) {
-          setUpcoming(upcomingRes.data.data || []);
-        }
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
+  const fetchAll = async () => {
+    try {
+      setLoading(true);
+      const [statsRes, upcomingRes] = await Promise.all([
+        axios.get(`${backendUrl}/api/student/dashboard/stats`, { withCredentials: true }),
+        axios.get(`${backendUrl}/api/student/dashboard/upcoming-classes`, { withCredentials: true }),
+      ]);
+
+      if (statsRes.data.success) {
+        setStudentInfo(statsRes.data.data.student);
+        setStats(statsRes.data.data.stats);
+        setCourses(statsRes.data.data.courses || []);
+        setAnnouncements(statsRes.data.data.announcements || []);
       }
-    };
+      if (upcomingRes.data.success) {
+        setUpcoming(upcomingRes.data.data || []);
+      }
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchAll();
+  useEffect(() => {
+    (async () => {
+      await fetchAll();
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendUrl]);
+
+  // ── Open modal & load available courses ──
+  const openEnrollModal = async () => {
+    setSelectedCourseId("");
+    setShowEnrollModal(true);
+    setLoadingCourses(true);
+    try {
+      const { data } = await axios.get(
+        `${backendUrl}/api/student/dashboard/available-courses`,
+        { withCredentials: true }
+      );
+      if (data.success) {
+        setAvailableCourses(data.data);
+      }
+    } catch (err) {
+      console.error("Error loading available courses:", err);
+      toast.error("Failed to load available courses");
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  // ── Enroll Course Handler ──
+  const handleEnrollCourse = async () => {
+    if (!selectedCourseId) {
+      toast.error("Please select a course to enroll");
+      return;
+    }
+    try {
+      setEnrolling(true);
+      const { data } = await axios.post(
+        `${backendUrl}/api/student/dashboard/enroll-course`,
+        { courseId: selectedCourseId },
+        { withCredentials: true }
+      );
+      if (data.success) {
+        toast.success(data.message || "Enrolled successfully!");
+        setShowEnrollModal(false);
+        await fetchAll(); // refresh list & stats
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to enroll in course");
+    } finally {
+      setEnrolling(false);
+    }
+  };
+
+  const selectedCourseDetails = availableCourses.find((c) => c._id === selectedCourseId);
 
   if (loading) {
     return (
@@ -63,7 +125,8 @@ const StudentDashboard = () => {
 
   return (
     <>
-    
+
+
       {studentInfo && (
         <div className="card" style={{ padding: "20px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap", background: "linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%)", borderRadius: "12px", border: "1px solid var(--border)" }}>
           <div style={{ width: "50px", height: "50px", borderRadius: "50%", backgroundColor: "var(--primary-soft, #ede9fe)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -85,10 +148,20 @@ const StudentDashboard = () => {
               </span>
             </div>
           </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+            <button
+              className="btn btn-primary cursor-pointer"
+              onClick={openEnrollModal}
+              style={{ display: "flex", alignItems: "center", gap: "6px" }}
+            >
+              <PlusCircle size={16} />
+              Enroll in Course
+            </button>
+          </div>
         </div>
       )}
 
-      
       <div className="stat-row" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "20px" }}>
         <div className="stat-card">
           <div className="stat-icon si-blue"><BookOpen size={18} /></div>
@@ -115,7 +188,6 @@ const StudentDashboard = () => {
         </div>
       </div>
 
-     
       <div className="two-col" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
         {/* Courses Table */}
         <div className="card" style={{ display: "flex", flexDirection: "column" }}>
@@ -159,10 +231,7 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-
-       
           <div className="card">
             <div className="card-header">
               <div className="card-title">Announcements</div>
@@ -170,7 +239,7 @@ const StudentDashboard = () => {
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "10px 0" }}>
               {announcements.length === 0 ? (
                 <div style={{ padding: "10px 16px", color: "var(--text3)", fontSize: "14px" }}>
-                  No announcements. You're all on track! 
+                  No announcements. You're all on track!
                 </div>
               ) : (
                 announcements.map((a, i) => (
@@ -183,7 +252,6 @@ const StudentDashboard = () => {
             </div>
           </div>
 
-          
           <div className="card">
             <div className="card-header">
               <div className="card-title">Upcoming Classes</div>
@@ -217,6 +285,106 @@ const StudentDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* ── Enroll Course Modal ── */}
+      {showEnrollModal && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+        }}>
+          <div className="card" style={{ width: "100%", maxWidth: "520px", margin: "20px", position: "relative" }}>
+
+            {/* Modal Header */}
+            <div className="card-header">
+              <span className="card-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <PlusCircle size={18} />
+                Enroll in a New Course
+              </span>
+              <button
+                className="btn btn-sm cursor-pointer"
+                style={{ border: "none", background: "transparent" }}
+                onClick={() => setShowEnrollModal(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Course Selector */}
+            <div className="form-row" style={{ marginTop: "10px" }}>
+              <div className="form-group" style={{ flex: 1 }}>
+                <label>Select Available Course</label>
+                {loadingCourses ? (
+                  <p style={{ color: "var(--text3)", fontSize: "14px" }}>Loading courses…</p>
+                ) : availableCourses.length === 0 ? (
+                  <p style={{ color: "var(--text3)", fontSize: "14px" }}>
+                    No available courses for your department/status at this time.
+                  </p>
+                ) : (
+                  <select
+                    className="cursor-pointer"
+                    value={selectedCourseId}
+                    onChange={(e) => setSelectedCourseId(e.target.value)}
+                  >
+                    <option value="">— Select a course —</option>
+                    {availableCourses.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.code} — {c.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
+
+            {/* Selected Course Details */}
+            {selectedCourseDetails && (
+              <div style={{
+                marginTop: "16px",
+                padding: "12px",
+                borderRadius: "8px",
+                border: "1px solid var(--border)",
+                backgroundColor: "var(--surface2)",
+                fontSize: "13px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "6px"
+              }}>
+                <h4 style={{ margin: 0, fontWeight: "600", fontSize: "14px", color: "var(--text)" }}>Course Details</h4>
+                <div><strong>Code:</strong> {selectedCourseDetails.code}</div>
+                <div><strong>Name:</strong> {selectedCourseDetails.name}</div>
+                <div><strong>Credits:</strong> {selectedCourseDetails.credits} Credits</div>
+                <div><strong>Department:</strong> {selectedCourseDetails.department}</div>
+                <div><strong>Instructor:</strong> {selectedCourseDetails.teacher ? `${selectedCourseDetails.teacher.firstName} ${selectedCourseDetails.teacher.lastName}` : "Unassigned"}</div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div style={{ display: "flex", gap: "8px", marginTop: "20px" }}>
+              <button
+                className="btn btn-primary cursor-pointer"
+                onClick={handleEnrollCourse}
+                disabled={enrolling || loadingCourses || !selectedCourseId}
+                style={{ display: "flex", alignItems: "center", gap: "6px" }}
+              >
+                <CheckCircle size={16} />
+                {enrolling ? "Enrolling…" : "Confirm Enrollment"}
+              </button>
+              <button
+                className="btn cursor-pointer"
+                onClick={() => setShowEnrollModal(false)}
+                disabled={enrolling}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

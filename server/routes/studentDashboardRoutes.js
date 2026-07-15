@@ -4,5 +4,8 @@ const studentDashboardController = require('../controllers/studentDashboardContr
 
 router.get('/stats', studentDashboardController.getStudentDashboardStats);
 router.get('/upcoming-classes', studentDashboardController.getUpcomingClasses);
+router.get('/available-courses', studentDashboardController.getAvailableCourses);
+router.post('/enroll-course', studentDashboardController.enrollInCourse);
 
 module.exports = router;
+

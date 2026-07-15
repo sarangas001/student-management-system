@@ -163,6 +163,7 @@ export const AdminStudents = () => {
     if (backendUrl) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [backendUrl]);
 
   const filteredStudents = useMemo(() => {
